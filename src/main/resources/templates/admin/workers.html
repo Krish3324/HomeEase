@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Approve Workers | Admin</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" th:href="@{/css/theme.css}">
+  <link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <style>
+    .workers-page { padding: 40px 8%; background: var(--light-bg); min-height: 80vh; }
+    .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <div th:replace="common/admin-navbar :: adminNavbar"></div>
+
+  <main class="workers-page">
+    <section class="workers-section">
+
+      <div class="page-header">
+        <div>
+          <h2>Pending Workers</h2>
+          <p>Review and approve new worker registrations</p>
+        </div>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <form th:action="@{/admin/workers}" method="get" class="he-search-bar">
+        <input type="text" name="search" th:value="${search}" class="he-input" placeholder="Search pending workers...">
+        <button type="submit" class="he-btn he-btn-primary">Search</button>
+        <a th:if="${search != null}" th:href="@{/admin/workers}" class="he-btn he-btn-secondary">Clear</a>
+      </form>
+
+      <!-- SUCCESS/ERROR MESSAGES -->
+      <div th:if="${successMsg}" class="he-alert he-alert-success" th:text="${successMsg}"></div>
+      <div th:if="${errorMsg}" class="he-alert he-alert-danger" th:text="${errorMsg}"></div>
+
+      <!-- Empty State -->
+      <div class="empty-box" th:if="${#lists.isEmpty(pendingWorkers)}">
+        <p>No pending workers</p>
+      </div>
+
+      <div class="he-table-wrapper" th:if="${!#lists.isEmpty(pendingWorkers)}">
+        <table class="he-table he-table-responsive">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>City</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="w : ${pendingWorkers}">
+              <td data-label="ID" th:text="'#' + ${w.id}"></td>
+              <td data-label="Worker">
+                <div style="font-weight: 700;" th:text="${w.name}"></div>
+                <div style="font-size: 11px; color: var(--muted);" th:text="${w.email}"></div>
+              </td>
+              <td data-label="Location" th:text="${w.city}"></td>
+              <td data-label="Actions">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <!-- View Details -->
+                  <button type="button" class="he-btn he-btn-sm" th:onclick="'showWorkerDetails(' + ${w.id} + ')'" style="background: #3b82f6; color: white; border: none; font-weight: 600;">
+                    Details
+                  </button>
+
+                  <!-- Approve -->
+                  <form th:action="@{/admin/workers/approve}" method="post" style="margin: 0;">
+                    <input type="hidden" name="id" th:value="${w.id}" />
+                    <button type="submit" class="he-btn he-btn-success he-btn-sm">Approve</button>
+                  </form>
+
+                  <!-- Reject -->
+                  <form th:action="@{/admin/workers/reject}" method="post" style="margin: 0;">
+                    <input type="hidden" name="id" th:value="${w.id}" />
+                    <button type="submit" class="he-btn he-btn-danger he-btn-sm">Decline</button>
+                  </form>
+
+                  <!-- Delete -->
+                  <form th:action="@{/admin/workers/delete}" method="post" onsubmit="return confirm('Delete this application permanently?')" style="margin: 0;">
+                     <input type="hidden" name="id" th:value="${w.id}" />
+                     <button type="submit" class="he-btn he-btn-secondary he-btn-sm" style="color: var(--red); border-color: var(--red-border);">
+                         Delete
+                     </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- WORKER DETAILS MODAL -->
+  <div id="workerModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="modal-content" style="background-color: #fff; margin: 3% auto; padding: 25px; border-radius: 16px; width: 90%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); position: relative; border: 1px solid rgba(0,0,0,0.08); overflow: hidden;">
+      <span class="close" onclick="closeModal()" style="color: #666; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; top: 15px; right: 20px; transition: 0.2s;">&times;</span>
+      <h2 style="margin-top: 0; font-size: 22px; color: #111; font-weight: 700; border-bottom: 2px solid #ffdb15; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <span>🧑‍🔧</span> Worker Profile & Verification
+      </h2>
+      <div id="workerDetails">
+        <!-- Worker details will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div th:replace="common/footer :: footer"></div>
+
+  <!-- JavaScript for Modal -->
+  <script>
+    function showWorkerDetails(workerId) {
+      fetch(`/admin/workers/details-json/${workerId}`)
+        .then(response => response.json())
+        .then(worker => {
+          const detailsDiv = document.getElementById('workerDetails');
+          if (!worker) {
+            detailsDiv.innerHTML = '<p style="color: red; text-align: center; font-weight: 600;">Worker details not found.</p>';
+            return;
+          }
+          
+          detailsDiv.innerHTML = `
+            <div class="worker-details-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px;">
+              <!-- Left Column: Text Details -->
+              <div class="details-left">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background: #fafafa; padding: 12px; border-radius: 12px; border: 1px solid #f0f0f0;">
+                  <img src="${worker.profileImage || '/images/default-profile.png'}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid #ffdb15;" alt="Profile">
+                  <div>
+                    <h3 style="margin: 0; font-size: 18px; color: #111; font-weight: 700;">${worker.name}</h3>
+                    <span style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-top: 4px;">${worker.category}</span>
+                    <div style="font-size: 11px; color: #777; margin-top: 3px; font-family: monospace;">UID: ${worker.publicUserId}</div>
+                  </div>
+                </div>
+                
+                <div class="info-group" style="font-size: 14px; color: #333;">
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">Email:</strong> <span>${worker.email}</span></div>
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">Mobile:</strong> <span>${worker.mobile || 'N/A'}</span></div>
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">DOB:</strong> <span>${worker.dob || 'N/A'}</span></div>
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">Location:</strong> <span>${worker.city}, ${worker.state} - ${worker.pincode}</span></div>
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">Experience:</strong> <span>${worker.experience || 0} years</span></div>
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">Charges (Min/Max):</strong> <span>₹${worker.minCharge || 0} - ₹${worker.maxCharge || 0}</span></div>
+                  <div style="margin: 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; display: flex; justify-content: space-between;"><strong style="color: #666;">Email Verified:</strong> <span style="color: ${worker.emailVer === 1 ? '#22c55e' : '#ef4444'}; font-weight: bold;">${worker.emailVer === 1 ? 'Yes' : 'No'}</span></div>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                  <h4 style="margin: 0 0 6px 0; font-size: 13px; color: #555; font-weight: 600;">Short Bio:</h4>
+                  <p style="margin: 0; font-size: 12px; color: #555; background: #fdfdfd; padding: 10px; border-radius: 8px; border: 1px dashed #e0e0e0; line-height: 1.4; max-height: 80px; overflow-y: auto;">
+                    ${worker.bio || 'No bio provided.'}
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Right Column: Verification ID & Actions -->
+              <div class="details-right" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #555; font-weight: 600;">Verification ID Image:</h4>
+                  <div style="border: 2px dashed #ccc; border-radius: 12px; overflow: hidden; background: #fafafa; display: flex; align-items: center; justify-content: center; height: 210px; position: relative; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03);">
+                    <img src="/admin/workers/view-id/${worker.id}" style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: pointer; transition: 0.2s;" onclick="window.open('/admin/workers/view-id/${worker.id}', '_blank')" title="Click to view full size">
+                  </div>
+                  <p style="font-size: 10px; color: #999; text-align: center; margin-top: 5px;">ℹ Click the ID image above to view it in full size.</p>
+                </div>
+                
+                <!-- Quick Decisions Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+                  <form action="/admin/workers/approve" method="post" style="flex: 1; margin: 0;">
+                    <input type="hidden" name="id" value="${worker.id}">
+                    <button type="submit" class="he-btn" style="width: 100%; padding: 11px; font-weight: 600; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 6px rgba(34, 197, 94, 0.2);">
+                      Approve & Notify
+                    </button>
+                  </form>
+                  <form action="/admin/workers/reject" method="post" style="flex: 1; margin: 0;">
+                    <input type="hidden" name="id" value="${worker.id}">
+                    <button type="submit" class="he-btn" style="width: 100%; padding: 11px; font-weight: 600; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 6px rgba(239, 68, 68, 0.2);">
+                      Decline & Notify
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          const modal = document.getElementById('workerModal');
+          modal.style.display = 'flex';
+        })
+        .catch(error => {
+          console.error('Error fetching worker details:', error);
+          alert('Error loading worker details');
+        });
+    }
+
+    function closeModal() {
+      document.getElementById('workerModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function (event) {
+      const modal = document.getElementById('workerModal');
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+
+</html>

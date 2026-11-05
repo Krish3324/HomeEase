@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Complete Your Profile | HomeEase</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<section class="form-container">
+    <h2>Complete Your Worker Profile 🧑‍🔧</h2>
+    <p style="color:#555; margin-bottom:20px;">
+        Fill in your details. Admin will review and approve your account.
+    </p>
+
+    <form action="/worker/complete-profile" method="post" enctype="multipart/form-data">
+        <div class="form-grid">
+            <label>Profile Picture (optional)</label>
+            <input type="file" name="profileImage" accept="image/png, image/jpeg, image/jpg">
+
+            <label>Verification ID Image (required)</label>
+            <input type="file" name="idImage" accept="image/png, image/jpeg, image/jpg" required>
+
+            <input type="tel" name="mobile" placeholder="Mobile Number" required>
+            <input type="date" name="dob" required>
+            <input type="text" name="city" placeholder="City" required>
+            <input type="text" name="state" placeholder="State" required>
+            <input type="text" name="pincode" placeholder="Pincode" required>
+
+            <select name="category" required>
+                <option value="">Select Category</option>
+                <option>Electrician</option>
+                <option>Plumber</option>
+                <option>Cleaner</option>
+                <option>Painter</option>
+                <option>Carpenter</option>
+            </select>
+
+            <input type="number" name="experience" placeholder="Experience (Years)" required>
+            <input type="number" name="minCharge" placeholder="Min Charge (₹)" required>
+            <input type="number" name="maxCharge" placeholder="Max Charge (₹)" required>
+            <textarea name="bio" rows="3" placeholder="Short Bio / Description"></textarea>
+
+            
+            <input type="password" name="password" placeholder="Set a Password" required>
+            <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+
+        </div>
+        <button class="btn" type="submit">Submit for Approval</button>
+    </form>
+</section>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Details Review | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --white: #ffffff;
+            --off-white: #f9f8f5;
+            --text-dark: #181818;
+            --text-mid: #4a4a45;
+            --text-light: #909088;
+            --border: rgba(234,231,220,0.6);
+            --success: #059669;
+            --error: #dc2626;
+            --warning: #f59e0b;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #faf7ef;
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            padding: 40px 8%;
+            background: var(--off-white);
+            min-height: 80vh;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        .back-link {
+            font-size: 14px;
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-link:hover {
+            color: var(--gold);
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        /* DETAILS */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .detail-item {
+            background: var(--off-white);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            word-break: break-all;
+        }
+
+        .detail-masked {
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+
+        /* STATUS */
+        .status-box {
+            background: linear-gradient(135deg, rgba(201,168,76,0.05), rgba(232,213,160,0.1));
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .status-box h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .status-badge.verified {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.rejected {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        /* INFO BOX */
+        .info-box {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-box h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #78350f;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            font-size: 14px;
+            color: #92400e;
+            line-height: 1.6;
+        }
+
+        /* DOCUMENTS */
+        .document-list {
+            list-style: none;
+        }
+
+        .document-item {
+            padding: 12px;
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .document-item a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .document-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* ACTIONS */
+        .action-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .action-card {
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .action-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .action-card p {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+        }
+
+        .btn.verify {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn.verify:hover {
+            background: #047857;
+        }
+
+        .btn.reject {
+            background: var(--error);
+            color: var(--white);
+        }
+
+        .btn.reject:hover {
+            background: #b91c1c;
+        }
+
+        .btn.warning {
+            background: var(--warning);
+            color: var(--white);
+        }
+
+        .btn.warning:hover {
+            background: #d97706;
+        }
+
+        .btn.back {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn.back:hover {
+            background: #e4dfcf;
+        }
+
+        /* WORKER INFO */
+        .worker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 24px;
+        }
+
+        .worker-info h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .worker-info p {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .close {
+            color: var(--text-light);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+
+        .close:hover {
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-actions .btn-primary {
+            background: var(--gold);
+            color: var(--white);
+        }
+
+        .form-actions .btn-secondary {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        @media (max-width: 768px) {
+            .page-wrapper { padding: 24px; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .action-section { grid-template-columns: 1fr; }
+            .worker-header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <div th:replace="common/admin-navbar :: adminNavbar"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-wrapper">
+        <div class="page-header">
+            <div>
+                <h2>Bank Details Review</h2>
+                <a th:href="@{/admin/bank-details}" class="back-link">← Back to Bank Details</a>
+            </div>
+        </div>
+
+        <!-- WORKER INFO -->
+        <div class="card">
+            <div class="worker-header">
+                <div class="worker-info">
+                    <h3 th:text="${worker.name}"></h3>
+                    <p th:text="${worker.email}"></p>
+                    <p th:text="${worker.mobile}"></p>
+                    <p th:text="${worker.city + ', ' + worker.state}"></p>
+                </div>
+                <div>
+                    <div th:if="${bankDetails.verificationStatus.toString() == 'VERIFIED'}" class="status-badge verified">
+                        ✓ Verified
+                    </div>
+                    <div th:if="${bankDetails.verificationStatus.toString() == 'PENDING'}" class="status-badge pending">
+                        ⏳ Pending
+                    </div>
+                    <div th:if="${bankDetails.verificationStatus.toString() == 'REJECTED'}" class="status-badge rejected">
+                        ✗ Rejected
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BANK DETAILS -->
+        <div class="card">
+            <h3>Bank Account Information</h3>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Account Holder Name</div>
+                    <div class="detail-value" th:text="${bankDetails.accountHolderName}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Account Number</div>
+                    <div class="detail-value detail-masked" th:text="${'****' + bankDetails.accountNumber.substring(bankDetails.accountNumber.length() - 4)}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Bank Name</div>
+                    <div class="detail-value" th:text="${bankDetails.bankName}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Branch Name</div>
+                    <div class="detail-value" th:text="${bankDetails.branchName}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">IFSC Code</div>
+                    <div class="detail-value" th:text="${bankDetails.ifscCode}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Account Type</div>
+                    <div class="detail-value" th:text="${bankDetails.accountType}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">UPI ID</div>
+                    <div class="detail-value" th:text="${bankDetails.upiId}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IDENTIFICATION DETAILS -->
+        <div class="card">
+            <h3>Identification Details</h3>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">PAN Number</div>
+                    <div class="detail-value detail-masked" th:text="${bankDetails.panNumber.substring(0, 5) + '****' + bankDetails.panNumber.substring(bankDetails.panNumber.length() - 1)}"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Aadhar Number</div>
+                    <div class="detail-value detail-masked" th:text="${'****' + bankDetails.aadharNumber.substring(bankDetails.aadharNumber.length() - 4)}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCUMENTS -->
+        <div class="card" th:if="${bankDetails.bankStatementPath != null || bankDetails.passBookPath != null}">
+            <h3>Attached Documents</h3>
+            
+            <ul class="document-list">
+                <li th:if="${bankDetails.bankStatementPath}" class="document-item">
+                    <span>📄 Bank Statement</span>
+                    <a th:href="${bankDetails.bankStatementPath}" target="_blank">Download</a>
+                </li>
+                <li th:if="${bankDetails.passBookPath}" class="document-item">
+                    <span>📄 Passbook</span>
+                    <a th:href="${bankDetails.passBookPath}" target="_blank">Download</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- SUBMISSION & VERIFICATION TIMELINE -->
+        <div class="card">
+            <h3>Verification Timeline</h3>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Submitted At</div>
+                    <div class="detail-value" th:text="${#temporals.format(bankDetails.submittedAt, 'dd MMM yyyy, HH:mm')}"></div>
+                </div>
+                <div th:if="${bankDetails.verifiedAt}" class="detail-item">
+                    <div class="detail-label">Verified At</div>
+                    <div class="detail-value" th:text="${#temporals.format(bankDetails.verifiedAt, 'dd MMM yyyy, HH:mm')}"></div>
+                </div>
+            </div>
+
+            <div th:if="${bankDetails.adminNotes}" class="info-box">
+                <h4>Admin Notes</h4>
+                <p th:text="${bankDetails.adminNotes}"></p>
+            </div>
+
+            <div th:if="${bankDetails.rejectionReason}" class="info-box" style="background: #fee2e2; border-color: #fca5a5;">
+                <h4 style="color: #7f1d1d;">Rejection/Resubmission Reason</h4>
+                <p style="color: #991b1b;" th:text="${bankDetails.rejectionReason}"></p>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="action-section" th:if="${bankDetails.verificationStatus.toString() == 'PENDING'}">
+            <div class="action-card">
+                <h4>Approve & Verify</h4>
+                <p>Mark bank details as verified. Worker will be able to accept bookings immediately.</p>
+                <button class="btn verify" onclick="showVerifyModal()">Verify Details</button>
+            </div>
+            <div class="action-card">
+                <h4>Reject or Request Resubmission</h4>
+                <p>Reject these bank details and request worker to resubmit with corrections.</p>
+                <button class="btn reject" onclick="showRejectModal()">Reject Details</button>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 24px;">
+            <a th:href="@{/admin/bank-details}" class="btn back">← Back to Bank Details List</a>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <!-- VERIFY MODAL -->
+    <div id="verifyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('verifyModal')">&times;</span>
+            <div class="modal-header">Verify Bank Details</div>
+            
+            <form method="POST" action="/admin/bank-details/verify">
+                <input type="hidden" name="id" th:value="${bankDetails.id}">
+                
+                <div class="form-group">
+                    <label>Admin Notes (Optional)</label>
+                    <textarea name="adminNotes" placeholder="Add notes about this verification..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Verify & Approve</button>
+                    <button type="button" onclick="closeModal('verifyModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- REJECT MODAL -->
+    <div id="rejectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('rejectModal')">&times;</span>
+            <div class="modal-header">Reject Bank Details</div>
+            
+            <form method="POST" action="/admin/bank-details/reject">
+                <input type="hidden" name="id" th:value="${bankDetails.id}">
+                
+                <div class="form-group">
+                    <label>Rejection Reason <span style="color: red;">*</span></label>
+                    <textarea name="rejectionReason" placeholder="Explain why these details are rejected..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Admin Notes (Optional)</label>
+                    <textarea name="adminNotes" placeholder="Add additional notes..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Reject & Notify Worker</button>
+                    <button type="button" onclick="closeModal('rejectModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showVerifyModal() {
+            document.getElementById('verifyModal').style.display = 'block';
+        }
+
+        function showRejectModal() {
+            document.getElementById('rejectModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const verifyModal = document.getElementById('verifyModal');
+            const rejectModal = document.getElementById('rejectModal');
+            
+            if (event.target == verifyModal) {
+                verifyModal.style.display = 'none';
+            }
+            if (event.target == rejectModal) {
+                rejectModal.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

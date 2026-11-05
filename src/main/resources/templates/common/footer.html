@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <!-- Common Theme CSS for all layouts using this footer -->
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+</head>
+
+<body>
+
+  <footer class="he-footer" th:fragment="footer">
+    <div class="he-footer-grid">
+
+      <!-- Brand -->
+      <div class="footer-brand">
+        <div class="brand-name">HomeEase</div>
+        <p class="brand-desc">Trusted and verified home service professionals at your doorstep. Quality, reliability and
+          care — every time.</p>
+      </div>
+
+      <!-- Company Links -->
+      <div class="footer-links">
+        <h4>Company</h4>
+        <ul>
+          <li><a th:href="@{/about}">About Us</a></li>
+          <li><a th:href="@{/privacy}">Privacy Policy</a></li>
+          <li><a th:href="@{/terms}">Terms &amp; Conditions</a></li>
+        </ul>
+      </div>
+
+      <!-- Admin Links -->
+      <div class="footer-links" sec:authorize="hasRole('ADMIN')">
+        <h4>Admin Panel</h4>
+        <ul>
+          <li><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+          <li><a th:href="@{/admin/workers}">Workers</a></li>
+          <li><a th:href="@{/admin/users}">Users</a></li>
+          <li><a th:href="@{/admin/bookings}">Bookings</a></li>
+        </ul>
+      </div>
+
+      <!-- Worker Links -->
+      <div class="footer-links" sec:authorize="hasRole('WORKER')">
+        <h4>Worker Panel</h4>
+        <ul>
+          <li><a th:href="@{/worker/dashboard}">Dashboard</a></li>
+          <li><a th:href="@{/worker/profile}">My Profile</a></li>
+          <li><a th:href="@{/worker/jobs}">My Jobs</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div class="footer-contact">
+        <h4>Support</h4>
+        <p class="contact-line">📧 support@homeease.com</p>
+        <p class="contact-line">📞 +91 98765 43210</p>
+      </div>
+
+    </div>
+
+    <div class="he-footer-bottom">
+      © 2026 <span>HomeEase</span>. All rights reserved.
+    </div>
+  </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${viewTitle} + ' | Admin'">Bookings | Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Theme & Navbar -->
+  <link rel="stylesheet" th:href="@{/css/theme.css}">
+  <link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+
+  <style>
+    .bookings-page { padding: 40px 8%; background: var(--light-bg); min-height: 80vh; }
+    .page-header { margin-bottom: 32px; }
+    .page-header h2 { font-size: 28px; font-weight: 700; color: var(--black); }
+    
+    @media (max-width: 900px) {
+      .bookings-page { padding: 30px 5%; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <div th:replace="common/admin-navbar :: adminNavbar"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="bookings-page">
+
+    <div class="page-header">
+      <h2 th:text="${viewTitle}">Bookings</h2>
+      <p th:text="${#lists.size(bookings)} + ' results found'"></p>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <form th:action="${isCompleted != null ? '/admin/bookings/completed' : '/admin/bookings'}" method="get" class="he-search-bar">
+      <input type="text" name="search" th:value="${search}" class="he-input" placeholder="Search by user, worker, or city...">
+      <button type="submit" class="he-btn he-btn-primary">Search</button>
+      <a th:if="${search != null}" th:href="${isCompleted != null ? '/admin/bookings/completed' : '/admin/bookings'}" class="he-btn he-btn-secondary">Clear</a>
+    </form>
+
+    <!-- BOOKINGS TABLE -->
+    <div class="he-table-wrapper" th:if="${!#lists.isEmpty(bookings)}">
+      <table class="he-table he-table-responsive">
+        <thead>
+          <tr>
+            <th>Booking ID</th>
+            <th>Date & Time</th>
+            <th>User</th>
+            <th>Worker</th>
+            <th>City</th>
+            <th>Status</th>
+            <th>Proofs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="b : ${bookings}">
+            <td data-label="ID" th:text="'#' + ${b.id}"></td>
+            <td data-label="Schedule">
+              <div style="font-weight: 700;" th:text="${b.bookingDate}"></div>
+              <div style="font-size: 12px; color: var(--muted);" th:text="${b.bookingTime}"></div>
+            </td>
+            <td data-label="User">
+              <div style="font-weight: 700;" th:text="${b.user.name}"></div>
+              <div style="font-size: 11px; color: var(--muted);" th:text="${b.user.email}"></div>
+            </td>
+            <td data-label="Worker">
+              <div style="font-weight: 700;" th:text="${b.worker.name}"></div>
+              <div style="font-size: 11px; color: var(--muted);" th:text="${b.worker.category}"></div>
+            </td>
+            <td data-label="Location" th:text="${b.city}"></td>
+            <td data-label="Status">
+              <span th:switch="${b.status.name()}">
+                <span th:case="'PENDING'" class="he-badge he-badge-warning">Pending</span>
+                <span th:case="'CONFIRMED'" class="he-badge he-badge-info">Confirmed</span>
+                <span th:case="'IN_PROGRESS'" class="he-badge he-badge-info" style="background:#2563EB;color:white;">In Progress</span>
+                <span th:case="'COMPLETED'" class="he-badge he-badge-active">Completed</span>
+                <span th:case="'CANCELLED'" class="he-badge he-badge-disabled">Cancelled</span>
+                <span th:case="*" class="he-badge" th:text="${b.status}"></span>
+              </span>
+            </td>
+            <td data-label="Proofs">
+              <button th:if="${b.status.name() == 'COMPLETED' or b.status.name() == 'IN_PROGRESS'}" 
+                      class="he-btn he-btn-secondary he-btn-sm" 
+                      th:onclick="'viewAdminProofs(' + ${b.id} + ')'">
+                🖼 View
+              </button>
+              <span th:unless="${b.status.name() == 'COMPLETED' or b.status.name() == 'IN_PROGRESS'}" style="color:var(--muted); font-size:11px;">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PROOF MODAL -->
+    <div id="adminProofOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+      <div style="background:white; border-radius:16px; padding:32px; width:90%; max-width:700px; max-height:80vh; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h3 style="margin:0;">Job Done Proof Gallery</h3>
+          <button onclick="closeAdminProofs()" style="background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
+        </div>
+        <div id="adminGalleryContent" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:15px; overflow-y:auto; padding:10px;">
+          <!-- Images go here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function viewAdminProofs(bookingId) {
+        fetch('/admin/bookings/proofs/' + bookingId)
+          .then(r => r.json())
+          .then(data => {
+            const box = document.getElementById('adminGalleryContent');
+            box.innerHTML = '';
+            if (data.length === 0) {
+              box.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:40px; color:#666;">No images uploaded for this booking.</p>';
+            } else {
+              data.forEach(p => {
+                const link = document.createElement('a');
+                link.href = p.imagePath;
+                link.target = '_blank';
+                const img = document.createElement('img');
+                img.src = p.imagePath;
+                img.style.width = '100%';
+                img.style.height = '150px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '8px';
+                img.style.cursor = 'pointer';
+                link.appendChild(img);
+                box.appendChild(link);
+              });
+            }
+            document.getElementById('adminProofOverlay').style.display = 'flex';
+          });
+      }
+      function closeAdminProofs() {
+        document.getElementById('adminProofOverlay').style.display = 'none';
+      }
+    </script>
+
+    <!-- EMPTY STATE -->
+    <div class="he-card" th:if="${#lists.isEmpty(bookings)}" style="text-align: center; padding: 60px;">
+      <div style="font-size: 40px; margin-bottom: 20px;">📅</div>
+      <h3>No bookings found</h3>
+      <p style="color: var(--muted);">Try adjusting your search criteria or check back later.</p>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <div th:replace="common/footer :: footer"></div>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Booking Success</title>
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { text-align: center; margin-top: 100px; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+<div th:replace="common/user-navbar :: userNavbar"></div>
+    <h2>✅ Booking Request Sent!</h2>
+    <p>Your request has been sent to the worker.</p>
+    <a href="/user/dashboard">Go to Dashboard</a>
+<div th:replace="common/footer :: footer"></div>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

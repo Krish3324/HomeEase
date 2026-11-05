@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HomeEase</title>
+    <link rel="stylesheet" href="/css/services.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <div class="logo">HomeEase</div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/login">Login</a></li>
+    </ul>
+</header>
+
+<!-- SERVICES -->
+<section class="services-section">
+    <h2>Our Services</h2>
+
+    <div class="services-grid">
+        <div class="service-card">
+            <h3>House Cleaning</h3>
+            <p>Professional home cleaning service.</p>
+            <span>Starting ₹499</span>
+            <button>Book Now</button>
+        </div>
+
+        <div class="service-card">
+            <h3>Plumbing</h3>
+            <p>Expert plumbing solutions.</p>
+            <span>Starting ₹299</span>
+            <button>Book Now</button>
+        </div>
+
+        <div class="service-card">
+            <h3>Electrician</h3>
+            <p>Safe & reliable electrical work.</p>
+            <span>Starting ₹399</span>
+            <button>Book Now</button>
+        </div>
+
+        <div class="service-card">
+            <h3>AC Repair</h3>
+            <p>Fast AC repair & servicing.</p>
+            <span>Starting ₹599</span>
+            <button>Book Now</button>
+        </div>
+    </div>
+</section>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

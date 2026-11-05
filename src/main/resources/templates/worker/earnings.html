@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Earnings | HomeEase</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --surface2: #F1F5F9;
+            --border: #E2E8F0;
+            --accent: #F59E0B;
+            --accent2: #D97706;
+            --text: #0F172A;
+            --muted: #64748B;
+            --green: #10B981;
+            --gold: #FBBF24;
+            --red: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* SIDEBAR (Duplicated from dashboard for consistency) */
+        .sidebar {
+            width: 260px; min-height: 100vh; background: var(--surface);
+            border-right: 1px solid var(--border); display: flex;
+            flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100;
+        }
+        .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
+        .brand-row { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 14px; background: linear-gradient(135deg, var(--gold), var(--accent));
+            color: #111; font-size: 16px; font-weight: 800;
+        }
+        .sidebar-logo h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin: 0; }
+        .sidebar-logo p { font-size: 11px; color: var(--muted); margin: 4px 0 0; text-transform: uppercase; letter-spacing: 1.5px; }
+
+        .sidebar-nav { padding: 10px 12px; flex: 1; }
+        .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); padding: 16px 12px 8px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: var(--muted); text-decoration: none; transition: all 0.2s; margin-bottom: 2px;
+        }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(245, 197, 24, 0.12); color: var(--accent); border: 1px solid rgba(245, 197, 24, 0.2); }
+
+        /* MAIN WRAPPER */
+        .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+        .topbar { padding: 24px 34px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); position: sticky; top: 0; z-index: 50; }
+        .topbar-title { font-size: 26px; font-weight: 700; color: #0A0A0A; }
+        .content { padding: 32px; }
+
+        /* EARNINGS STYLES */
+        .earnings-header {
+            display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;
+        }
+        .earnings-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #fff; border-radius: 20px; padding: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .earnings-card::after {
+            content: ''; position: absolute; right: -50px; top: -50px;
+            width: 200px; height: 200px; background: rgba(245, 158, 11, 0.2);
+            border-radius: 50%; filter: blur(40px);
+        }
+        .ec-title { font-size: 14px; font-weight: 500; color: #cbd5e1; font-family: 'DM Sans', sans-serif; }
+        .ec-amount { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1px; }
+        .ec-bottom { font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+
+        /* FILTER TABS */
+        .filter-section {
+            display: flex; align-items: center; gap: 12px; background: var(--surface);
+            padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px;
+        }
+        .filter-btn {
+            padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+            border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
+            transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+        }
+        .filter-btn.active {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .date-picker {
+            display: flex; align-items: center; gap: 8px; margin-left: auto;
+        }
+        .date-picker input {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; background: var(--surface2);
+        }
+        .filter-custom-submit {
+            padding: 8px 14px; border-radius: 8px; background: #0f172a; color: #fff; border: none; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .filter-custom-submit:hover { background: #334155; }
+
+        /* BOOKINGS TABLE */
+        .bookings-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+        }
+        .bookings-header {
+            padding: 18px 20px; border-bottom: 1px solid var(--border); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+        }
+        .bookings-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .bookings-table th {
+            text-align: left; padding: 14px 20px; color: var(--muted); font-weight: 600; font-size: 12px;
+            text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); background: var(--surface2);
+        }
+        .bookings-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+        .bookings-table tr:hover td { background: #f8fafc; }
+        .amount-td { font-weight: 700; color: #10B981; font-family: 'DM Sans', sans-serif; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; display: none; }
+
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .filter-section { flex-wrap: wrap; }
+            .date-picker { margin-left: 0; width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-row">
+                <span class="brand-icon">HE</span>
+                <div>
+                    <h1>HomeEase</h1>
+                    <p>Worker Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a href="/worker/dashboard" class="nav-item"><span>🏠</span> Dashboard</a>
+            <a href="/worker/profile" class="nav-item"><span>👤</span> Profile</a>
+            <a href="/worker/earnings" class="nav-item active"><span>💰</span> Earnings</a>
+            <a href="/worker/quote-requests" class="nav-item"><span>📩</span> Quote Requests</a>
+            <a href="/worker/settings" class="nav-item"><span>⚙️</span> Settings</a>
+            <form action="/logout" method="post" style="margin: 2px 0;">
+                <button type="submit" class="nav-item" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;transition:all 0.2s;"><span>⇤</span> Logout</button>
+            </form>
+        </nav>
+    </aside>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-title">Earnings Dashboard</div>
+        </div>
+
+        <div class="content">
+            
+            <div class="earnings-header">
+                <div class="earnings-card" style="width: 100%; max-width: 400px;">
+                    <div class="ec-title">Total Revenue</div>
+                    <div class="ec-amount" id="totalAmount">₹0.00</div>
+                    <div class="ec-bottom">
+                        <i class="fas fa-chart-line"></i> <span id="bookingCount">0</span> Bookings Completed
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <button class="filter-btn active" onclick="setFilter('month', this)">This Month</button>
+                <button class="filter-btn" onclick="setFilter('week', this)">This Week</button>
+                <button class="filter-btn" onclick="setFilter('all', this)">All Time</button>
+                
+                <div class="date-picker">
+                    <span style="font-size:12px;color:var(--muted);font-weight:600;">CUSTOM</span>
+                    <input type="date" id="startDate">
+                    <span style="color:var(--muted)">-</span>
+                    <input type="date" id="endDate">
+                    <button class="filter-custom-submit" onclick="fetchCustomDate()">Apply</button>
+                </div>
+            </div>
+
+            <div class="bookings-card">
+                <div class="bookings-header">Completed Jobs & Revenue</div>
+                <table class="bookings-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Customer Name</th>
+                            <th>Service Category</th>
+                            <th>Amount Earned</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+                <div class="empty-state" id="emptyState">No completed bookings found in this period.</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Default filter to "month"
+            fetchEarningsData(getDateParam('month'), new Date().toISOString().split('T')[0]);
+        });
+
+        function setFilter(type, btnObj) {
+            // Update active styling
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if(btnObj) btnObj.classList.add('active');
+            
+            // Clear custom dates if predefined is selected
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+
+            let end = new Date().toISOString().split('T')[0];
+            let start = getDateParam(type);
+            fetchEarningsData(start, end);
+        }
+
+        function fetchCustomDate() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            let start = document.getElementById('startDate').value;
+            let end = document.getElementById('endDate').value;
+            if(!start || !end) {
+                alert("Please select both start and end dates.");
+                return;
+            }
+            fetchEarningsData(start, end);
+        }
+
+        function getDateParam(type) {
+            let d = new Date();
+            if(type === 'week') {
+                d.setDate(d.getDate() - 7);
+                return d.toISOString().split('T')[0];
+            } else if (type === 'month') {
+                d.setMonth(d.getMonth() - 1);
+                return d.toISOString().split('T')[0];
+            } else if (type === 'all') {
+                return '2020-01-01'; // arbitrarily old date to fetch all
+            }
+            return '';
+        }
+
+        async function fetchEarningsData(startDate, endDate) {
+            const tbody = document.getElementById('bookingsTableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748B;">Loading data...</td></tr>';
+            
+            try {
+                let url = `/worker/api/earnings-data?startDate=${startDate}&endDate=${endDate}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if(data.status === 'success') {
+                    document.getElementById('totalAmount').textContent = '₹' + data.totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                    document.getElementById('bookingCount').textContent = data.bookingCount;
+
+                    tbody.innerHTML = '';
+                    if(data.bookings && data.bookings.length > 0) {
+                        emptyState.style.display = 'none';
+                        data.bookings.forEach(b => {
+                            let tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${formatDate(b.date)}</td>
+                                <td style="font-weight:500;">${b.customerName}</td>
+                                <td style="color:#64748B;">${b.service}</td>
+                                <td class="amount-td">+₹${b.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        emptyState.style.display = 'block';
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:red;">Error fetching data.</td></tr>';
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:red;">Network Error.</td></tr>';
+            }
+        }
+
+        function formatDate(dateStr) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateStr).toLocaleDateString('en-IN', options);
+        }
+    </script>
+</body>
+</html>

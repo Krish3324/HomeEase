@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Services | HomeEase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --gold-pale: #fdf8ee;
+            --gold-border: #e8d5a0;
+            --white: #ffffff;
+            --off-white: #fafaf8;
+            --text-dark: #1c1c1c;
+            --text-mid: #555550;
+            --text-light: #999990;
+            --border: #eeece6;
+            --shadow-md: 0 8px 32px rgba(0,0,0,0.09);
+            --shadow-gold: 0 8px 32px rgba(201,168,76,0.18);
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--off-white);
+            color: var(--text-dark);
+        }
+
+        /* PAGE HEADER */
+        .page-header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 40px 0 32px;
+        }
+
+        .page-header-inner {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .breadcrumb {
+            font-size: 12px;
+            color: var(--text-light);
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .breadcrumb a { color: var(--text-light); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--gold); }
+        .breadcrumb span { color: var(--gold); }
+
+        .page-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: var(--text-mid);
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        /* TRUST BAR */
+        .trust-bar {
+            background: var(--gold-pale);
+            border-bottom: 1px solid var(--gold-border);
+            padding: 12px 0;
+        }
+
+        .trust-bar-inner {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-mid);
+            font-weight: 500;
+        }
+
+        .trust-item span { font-size: 15px; }
+
+        /* MAIN GRID */
+        .main-section {
+            max-width: 1160px;
+            margin: 48px auto;
+            padding: 0 40px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        /* SERVICE CARD */
+        .service-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            display: flex;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .service-card:hover {
+            border-color: var(--gold-border);
+            box-shadow: var(--shadow-gold);
+            transform: translateY(-4px);
+        }
+
+        .service-card:hover .card-go { opacity: 1; transform: translateX(0); }
+
+        /* Left color strip */
+        .card-strip {
+            width: 6px;
+            flex-shrink: 0;
+        }
+
+        .card-strip.electric { background: linear-gradient(180deg, #f7c800, #e8a000); }
+        .card-strip.plumber  { background: linear-gradient(180deg, #4fc3f7, #0288d1); }
+        .card-strip.cleaner  { background: linear-gradient(180deg, #81c784, #388e3c); }
+        .card-strip.painter  { background: linear-gradient(180deg, #f48fb1, #c2185b); }
+        .card-strip.carpenter{ background: linear-gradient(180deg, #ffb74d, #e65100); }
+
+        .card-body {
+            padding: 24px 20px;
+            flex: 1;
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .card-emoji-box {
+            width: 56px; height: 56px;
+            background: var(--gold-pale);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            border: 1px solid var(--gold-border);
+        }
+
+        .card-text { flex: 1; }
+
+        .card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-mid);
+            line-height: 1.55;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .card-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #388e3c;
+            background: #e8f5e9;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .card-badge::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #388e3c;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .card-go {
+            font-size: 22px;
+            color: var(--gold);
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.25s ease;
+            padding-right: 4px;
+        }
+
+        /* BOTTOM NOTE */
+        .bottom-note {
+            text-align: center;
+            margin-top: 48px;
+            padding: 24px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            color: var(--text-mid);
+        }
+
+        .bottom-note strong { color: var(--gold); }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .service-card { animation: fadeUp 0.45s ease both; }
+        .service-card:nth-child(1) { animation-delay: 0.05s; }
+        .service-card:nth-child(2) { animation-delay: 0.1s; }
+        .service-card:nth-child(3) { animation-delay: 0.15s; }
+        .service-card:nth-child(4) { animation-delay: 0.2s; }
+        .service-card:nth-child(5) { animation-delay: 0.25s; }
+
+        @media (max-width: 640px) {
+            .page-header-inner, .trust-bar-inner, .main-section { padding: 0 20px; }
+            .main-section { margin: 32px auto; }
+            .services-grid { grid-template-columns: 1fr; }
+            .trust-bar-inner { flex-wrap: wrap; gap: 16px; }
+        }
+    </style>
+</head>
+<body data-chatbot-role="USER">
+
+<div th:replace="common/user-navbar :: userNavbar"></div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div class="page-header-inner">
+        <div class="breadcrumb">
+            <a href="/user/dashboard">Dashboard</a> &nbsp;/&nbsp; <span>Services</span>
+        </div>
+        <h1>Choose a Service Category</h1>
+        <p>Browse verified professionals available in your area right now.</p>
+    </div>
+</div>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+    <div class="trust-bar-inner">
+        <div class="trust-item"><span>✦</span> Verified Workers Only</div>
+        <div class="trust-item"><span>📍</span> GPS-Based Matching</div>
+        <div class="trust-item"><span>🟢</span> Live Availability</div>
+        <div class="trust-item"><span>⭐</span> Rated by Real Users</div>
+    </div>
+</div>
+
+<!-- SERVICES -->
+<div class="main-section">
+        <div class="section-label">Browse Services</div>
+        <div class="section-title">What service do you need today?</div>
+
+        <div class="services-grid" th:if="${serviceCategories}">
+            <a th:each="category : ${serviceCategories}"
+               th:href="@{/user/active-services/results(category=${category.name})}"
+               class="service-card">
+                <div class="card-strip" th:style="'background: linear-gradient(180deg, #c9a84c, #8d7b36);'"></div>
+                <div class="card-body">
+                    <div class="card-emoji-box">🛠️</div>
+                    <div class="card-text">
+                        <div class="card-title" th:text="${category.name}"></div>
+                        <div class="card-desc" th:text="${category.description} ?: 'Admin added service category.'"></div>
+                        <div class="card-meta">
+                            <span class="card-badge" th:classappend="${workerCounts[category.name] > 0} ? '' : ' empty'"
+                                  th:text="${workerCounts[category.name] > 0} ? 'Available Now' : 'Apply for Service'"></span>
+                            <span th:text="${workerCounts[category.name] ?: 0} + ' worker(s) available'"></span>
+                        </div>
+                    </div>
+                    <div class="card-go">›</div>
+                </div>
+            </a>
+        </div>
+
+        <p th:if="${#lists.isEmpty(serviceCategories)}" style="text-align:center; color:#6b7280; margin-top: 24px;">No services have been configured yet. Please check back later.</p>
+    <div class="bottom-note">
+        <strong>✦ All workers are background-verified</strong> and approved by the HomeEase team before they can accept bookings.
+    </div>
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+<script src="/js/script.js"></script>
+<div th:replace="common/chatbot :: chatbot"></div>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

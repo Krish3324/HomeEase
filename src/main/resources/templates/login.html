@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | HomeEase</title>
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+
+<body data-chatbot-role="">
+
+  <header class="navbar">
+    <h2>HomeEase</h2>
+    <a href="/" class="nav-link">Home</a>
+  </header>
+
+  <section class="auth-container">
+    <div class="auth-card">
+      <h2>Welcome Back 👋</h2>
+      <p>Login to book trusted home services</p>
+
+      <div th:if="${param.error != null}">
+        <p th:if="${param.error[0] == 'bad_credentials'}" style="color:red;">Invalid email or password.</p>
+        <p th:if="${param.error[0] == 'disabled'}" style="color:red;">Please verify your email first.</p>
+        <p th:if="${param.error[0] == 'admin_disabled'}" style="color:red;">Your account has been disabled by admin.</p>
+        <p th:if="${param.error[0] == 'pending_approval'}" style="color:orange;">Your worker account is pending admin
+          approval.</p>
+        <p th:if="${param.error[0] == 'oauth_failed'}" style="color:red;">Google login failed. Please try again.</p>
+        <p th:if="${param.error[0] == 'locked'}" style="color:red;">Your account is locked.</p>
+      </div>
+
+      <form action="/login" method="post">
+
+        <!-- IMPORTANT: name="username" -->
+        <input type="email" name="username" placeholder="Email Address" required>
+
+        <!-- IMPORTANT: name="password" -->
+        <input type="password" name="password" placeholder="Password" required>
+
+        <div style="display: flex; align-items: center; justify-content: start; gap: 8px; margin-bottom: 15px;">
+            <input type="checkbox" name="remember-me" id="rememberMe" style="width: auto; margin: 0;" checked>
+            <label for="rememberMe" style="font-size: 14px; color: #555; cursor: pointer;">Keep me logged in</label>
+        </div>
+
+        <button type="submit">Login</button>
+
+      </form>
+      <p style="text-align:center; margin-top:10px; font-size:14px;">
+        <a href="/auth/forgot-password">Forgot Password?</a>
+      </p>
+
+      <p class="switch">
+        Don’t have an account?
+        <a href="javascript:void(0)" onclick="openRolePopup()">Register</a>
+      </p>
+    </div>
+  </section>
+  <!-- ROLE SELECTION POPUP -->
+  <div class="role-popup" id="rolePopup">
+    <div class="role-box">
+      <h2>Select Your Role</h2>
+
+      <button class="role-btn user" onclick="goToUserRegister()">
+        👤 Register as User
+      </button>
+
+      <button class="role-btn worker" onclick="goToWorkerRegister()">
+        🧑‍🔧 Register as Worker
+      </button>
+
+      <span class="close-btn" onclick="closeRolePopup()">✕</span>
+    </div>
+  </div>
+
+  <script src="/js/script.js"></script>
+  
+  <script>
+    // Prevent back button from accessing dashboard after logout
+    window.history.pushState(null, null, window.location.href);
+    
+    window.addEventListener('popstate', function(event) {
+      window.history.pushState(null, null, window.location.href);
+    });
+
+    // Clear browser cache for this page
+    if (window.history.length === 1) {
+      window.location.replace('/login');
+    }
+
+    // Disable browser back button when user is on login page after logout
+    history.forward();
+  </script>
+<div th:replace="common/chatbot :: chatbot"></div>
+  
+<div th:replace="common/translator :: translator"></div>
+</body>
+  </html>

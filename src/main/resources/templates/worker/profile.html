@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile | HomeEase Worker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --gold-pale: rgba(253,248,238,0.6);
+            --gold-border: rgba(232,213,160,0.5);
+            --white: #ffffff;
+            --off-white: #f9f8f5;
+            --text-dark: #181818;
+            --text-mid: #4a4a45;
+            --text-light: #909088;
+            --border: rgba(234,231,220,0.6);
+            --radius: 20px;
+            --glass-bg: rgba(255,255,255,0.45);
+            --glass-border: rgba(255,255,255,0.70);
+            --glass-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            font-size: 15px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #faf7ef;
+        }
+
+        /* ════════════════════════════════════════════
+           PAGE STRUCTURE
+        ════════════════════════════════════════════ */
+        .page-header {
+            background: #ffffff;
+            border-bottom: 1px solid rgba(234,231,220,0.75);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+            padding: 32px 0;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* ════════════════════════════════════════════
+           MAIN CONTENT
+        ════════════════════════════════════════════ */
+        .container {
+            max-width: 1200px;
+            margin: 48px auto;
+            padding: 0 48px;
+        }
+
+        /* ════════════════════════════════════════════
+           ALERTS
+        ════════════════════════════════════════════ */
+        .alert {
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #059669;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        /* ════════════════════════════════════════════
+           PROFILE FORM CARD
+        ════════════════════════════════════════════ */
+        .profile-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .profile-card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(201,168,76,0.2);
+        }
+
+        /* ════════════════════════════════════════════
+           FORM GROUPS
+        ════════════════════════════════════════════ */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            text-transform: capitalize;
+        }
+
+        label.required::after {
+            content: " *";
+            color: #ef4444;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+            background: var(--off-white);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            max-height: 250px;
+        }
+
+        /* ════════════════════════════════════════════
+           FORM BUTTONS
+        ════════════════════════════════════════════ */
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        button[type="submit"],
+        button[type="reset"] {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--white);
+            flex: 1;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(201,168,76,0.35);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        button[type="reset"] {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-mid);
+        }
+
+        button[type="reset"]:hover {
+            background: var(--off-white);
+            border-color: var(--text-light);
+        }
+
+        /* ════════════════════════════════════════════
+           SECTION DIVIDERS
+        ════════════════════════════════════════════ */
+        .section-divider {
+            margin: 32px 0;
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .section-divider h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: 20px;
+        }
+
+        /* ════════════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════════════ */
+        .back-link-container {
+            max-width: 1200px;
+            margin: 24px auto 0;
+            padding: 0 48px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(203, 213, 225, 0.35);
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            border-radius: 999px;
+            color: #0f172a;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(203, 213, 225, 0.55);
+        }
+
+        @media (max-width: 768px) {
+            .page-header { padding: 24px 0; }
+            .header-inner { padding: 0 24px; }
+            .back-link-container { padding: 0 24px; }
+            .container { padding: 0 24px; }
+            .profile-card { padding: 24px; }
+            .page-header h1 { font-size: 1.8rem; }
+            .form-row { grid-template-columns: 1fr; gap: 16px; }
+            .form-row.three { grid-template-columns: 1fr; }
+            .form-actions { flex-direction: column; }
+            button[type="submit"], button[type="reset"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- BACK LINK -->
+    <div class="back-link-container">
+        <a href="/worker/dashboard" class="back-link">← Back to Dashboard</a>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="header-inner">
+            <h1>My Profile</h1>
+            <p>Edit and manage your worker profile information</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <!-- ALERTS -->
+        <div th:if="${success}" class="alert success">
+            ✓ <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert error">
+            ✗ <span th:text="${error}"></span>
+        </div>
+
+        <!-- PROFILE FORM -->
+        <div class="profile-card">
+            <h2>Edit Profile Information</h2>
+
+            <form method="POST" action="/worker/update-profile" onsubmit="return validateForm()">
+                
+                <!-- PERSONAL INFORMATION -->
+                <div class="section-divider">
+                    <h3>Personal Information</h3>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name" class="required">Full Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            th:value="${worker.name}" 
+                            required 
+                            placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="mobile" class="required">Mobile Number</label>
+                        <input 
+                            type="tel" 
+                            id="mobile" 
+                            name="mobile" 
+                            th:value="${worker.mobile}" 
+                            required 
+                            placeholder="Enter your mobile number"
+                            pattern="[0-9]{10}"
+                            title="Please enter a valid 10-digit mobile number">
+                    </div>
+                </div>
+
+                <!-- EMAIL (READ-ONLY) -->
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input 
+                        type="email" 
+                        th:value="${worker.email}" 
+                        disabled 
+                        placeholder="Your email cannot be changed">
+                </div>
+
+                <!-- ADDRESS INFORMATION -->
+                <div class="section-divider">
+                    <h3>Location & Service Details</h3>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city" class="required">City</label>
+                        <input 
+                            type="text" 
+                            id="city" 
+                            name="city" 
+                            th:value="${worker.city}" 
+                            required 
+                            placeholder="Enter your city">
+                    </div>
+                    <div class="form-group">
+                        <label for="state" class="required">State</label>
+                        <input 
+                            type="text" 
+                            id="state" 
+                            name="state" 
+                            th:value="${worker.state}" 
+                            required 
+                            placeholder="Enter your state">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pincode" class="required">Pincode</label>
+                        <input 
+                            type="text" 
+                            id="pincode" 
+                            name="pincode" 
+                            th:value="${worker.pincode}" 
+                            required 
+                            placeholder="Enter your pincode"
+                            pattern="[0-9]{6}"
+                            title="Please enter a valid 6-digit pincode">
+                    </div>
+                    <div class="form-group">
+                        <label for="category" class="required">Service Category</label>
+                        <input 
+                            type="text" 
+                            id="category" 
+                            name="category" 
+                            th:value="${worker.category}" 
+                            required 
+                            placeholder="e.g., Cleaning, Plumbing, Electrician">
+                    </div>
+                </div>
+
+                <!-- PROFESSIONAL DETAILS -->
+                <div class="section-divider">
+                    <h3>Professional Details</h3>
+                </div>
+
+                <div class="form-row three">
+                    <div class="form-group">
+                        <label for="experience">Years of Experience</label>
+                        <input 
+                            type="number" 
+                            id="experience" 
+                            name="experience" 
+                            th:value="${worker.experience}" 
+                            min="0" 
+                            max="60"
+                            placeholder="e.g., 5">
+                    </div>
+                    <div class="form-group">
+                        <label for="minCharge">Minimum Charge (₹)</label>
+                        <input 
+                            type="number" 
+                            id="minCharge" 
+                            name="minCharge" 
+                            th:value="${worker.minCharge}" 
+                            min="0" 
+                            step="50"
+                            placeholder="e.g., 500">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxCharge">Maximum Charge (₹)</label>
+                        <input 
+                            type="number" 
+                            id="maxCharge" 
+                            name="maxCharge" 
+                            th:value="${worker.maxCharge}" 
+                            min="0" 
+                            step="50"
+                            placeholder="e.g., 2000">
+                    </div>
+                </div>
+
+                <!-- BIO / DESCRIPTION -->
+                <div class="form-group">
+                    <label for="bio">Professional Bio</label>
+                    <textarea 
+                        id="bio" 
+                        name="bio" 
+                        placeholder="Tell customers about your skills and experience (optional)"
+                        th:text="${worker.bio}"></textarea>
+                </div>
+
+                <!-- FORM ACTIONS -->
+                <div class="form-actions">
+                    <button type="submit">Save Changes</button>
+                    <button type="reset">Reset</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer th:replace="common/footer :: footer"></footer>
+
+    <script>
+        function validateForm() {
+            const name = document.getElementById('name').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const pincode = document.getElementById('pincode').value.trim();
+            const category = document.getElementById('category').value.trim();
+
+            if (!name || !mobile || !city || !state || !pincode || !category) {
+                alert('Please fill in all required fields.');
+                return false;
+            }
+
+            // Validate mobile (10 digits)
+            if (!/^\d{10}$/.test(mobile)) {
+                alert('Please enter a valid 10-digit mobile number.');
+                return false;
+            }
+
+            // Validate pincode (6 digits)
+            if (!/^\d{6}$/.test(pincode)) {
+                alert('Please enter a valid 6-digit pincode.');
+                return false;
+            }
+
+            // Validate charges if provided
+            const minCharge = document.getElementById('minCharge').value;
+            const maxCharge = document.getElementById('maxCharge').value;
+            
+            if (minCharge && maxCharge && parseFloat(minCharge) > parseFloat(maxCharge)) {
+                alert('Minimum charge cannot be greater than maximum charge.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.3s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

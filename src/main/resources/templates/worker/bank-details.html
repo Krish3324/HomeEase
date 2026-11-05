@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Details | HomeEase Worker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --gold-pale: rgba(253,248,238,0.6);
+            --white: #ffffff;
+            --off-white: #f9f8f5;
+            --text-dark: #181818;
+            --text-mid: #4a4a45;
+            --text-light: #909088;
+            --border: rgba(234,231,220,0.6);
+            --success: #059669;
+            --error: #dc2626;
+            --warning: #f59e0b;
+            --radius: 20px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            font-size: 15px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #faf7ef;
+        }
+
+        /* ════════════════════════════════════════════
+           PAGE STRUCTURE
+        ════════════════════════════════════════════ */
+        .page-header {
+            background: #ffffff;
+            border-bottom: 1px solid rgba(234,231,220,0.75);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+            padding: 32px 0;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* ════════════════════════════════════════════
+           MAIN CONTENT
+        ════════════════════════════════════════════ */
+        .container {
+            max-width: 1000px;
+            margin: 48px auto;
+            padding: 0 48px;
+        }
+
+        /* ════════════════════════════════════════════
+           ALERTS
+        ════════════════════════════════════════════ */
+        .alert {
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: var(--success);
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--error);
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: var(--warning);
+        }
+
+        /* ════════════════════════════════════════════
+           BANK DETAILS CARD
+        ════════════════════════════════════════════ */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom: 32px;
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(201,168,76,0.2);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .status-badge.verified {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.rejected {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .status-badge.resubmit {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        /* ════════════════════════════════════════════
+           FORM GROUPS
+        ════════════════════════════════════════════ */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            text-transform: capitalize;
+        }
+
+        label.required::after {
+            content: " *";
+            color: var(--error);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+            background: var(--off-white);
+        }
+
+        input[type="file"] {
+            padding: 12px;
+            cursor: pointer;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* ════════════════════════════════════════════
+           SECTION DIVIDERS
+        ════════════════════════════════════════════ */
+        .section-divider {
+            margin: 32px 0;
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .section-divider h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: 20px;
+        }
+
+        /* ════════════════════════════════════════════
+           FORM BUTTONS
+        ════════════════════════════════════════════ */
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        button[type="submit"],
+        button[type="reset"],
+        .btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button[type="submit"],
+        .btn.primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--white);
+            flex: 1;
+        }
+
+        button[type="submit"]:hover,
+        .btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(201,168,76,0.35);
+        }
+
+        button[type="submit"]:active,
+        .btn.primary:active {
+            transform: translateY(0);
+        }
+
+        button[type="reset"],
+        .btn.secondary {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-mid);
+        }
+
+        button[type="reset"]:hover,
+        .btn.secondary:hover {
+            background: var(--off-white);
+            border-color: var(--text-light);
+        }
+
+        /* ════════════════════════════════════════════
+           STATUS INFO BOXES
+        ════════════════════════════════════════════ */
+        .status-info {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .status-info.warning {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+        }
+
+        .status-info.error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+        }
+
+        .status-info h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .status-info p {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* ════════════════════════════════════════════
+           INFORMATION BOXES
+        ════════════════════════════════════════════ */
+        .info-box {
+            background: linear-gradient(135deg, rgba(201,168,76,0.05), rgba(232,213,160,0.1));
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-box h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .info-box ul {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-left: 24px;
+            line-height: 1.8;
+        }
+
+        /* ════════════════════════════════════════════
+           DETAIL VIEW
+        ════════════════════════════════════════════ */
+        .detail-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-mid);
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        /* ════════════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .page-header { padding: 24px 0; }
+            .header-inner { padding: 0 24px; }
+            .container { padding: 0 24px; }
+            .card { padding: 24px; }
+            .page-header h1 { font-size: 1.8rem; }
+            .form-row { grid-template-columns: 1fr; gap: 16px; }
+            .form-actions { flex-direction: column; }
+            button[type="submit"], button[type="reset"] { width: 100%; }
+            .detail-row { grid-template-columns: 1fr; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav th:replace="common/worker-navbar :: workerNavbar"></nav>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="header-inner">
+            <h1>Bank Details Verification</h1>
+            <p>Submit your bank details to start accepting bookings</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <!-- ALERTS -->
+        <div th:if="${success}" class="alert success">
+            ✓ <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert error">
+            ✗ <span th:text="${error}"></span>
+        </div>
+
+        <!-- ALREADY SUBMITTED -->
+        <div th:if="${hasSubmitted}">
+            <div class="card">
+                <h2>Your Bank Details</h2>
+                
+                <div th:if="${bankDetails.verificationStatus.toString() == 'VERIFIED'}" class="status-badge verified">
+                    ✓ Verified
+                </div>
+                <div th:if="${bankDetails.verificationStatus.toString() == 'PENDING'}" class="status-badge pending">
+                    ⏳ Pending Review
+                </div>
+                <div th:if="${bankDetails.verificationStatus.toString() == 'REJECTED'}" class="status-badge rejected">
+                    ✗ Rejected
+                </div>
+                <div th:if="${bankDetails.verificationStatus.toString() == 'NEEDS_RESUBMISSION'}" class="status-badge resubmit">
+                    ⚠ Needs Resubmission
+                </div>
+
+                <!-- REJECTION REASON -->
+                <div th:if="${bankDetails.rejectionReason}" class="status-info error">
+                    <h4>Reason for Rejection/Resubmission</h4>
+                    <p th:text="${bankDetails.rejectionReason}"></p>
+                </div>
+
+                <!-- ADMIN NOTES -->
+                <div th:if="${bankDetails.adminNotes}" class="status-info">
+                    <h4>Admin Notes</h4>
+                    <p th:text="${bankDetails.adminNotes}"></p>
+                </div>
+
+                <!-- BANK DETAILS SUMMARY -->
+                <div style="margin-top: 24px;">
+                    <div class="detail-row">
+                        <div class="detail-label">Account Holder Name</div>
+                        <div class="detail-value" th:text="${bankDetails.accountHolderName}"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Account Number</div>
+                        <div class="detail-value">
+                            <span th:text="${'****' + bankDetails.accountNumber.substring(bankDetails.accountNumber.length() - 4)}"></span>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Bank Name</div>
+                        <div class="detail-value" th:text="${bankDetails.bankName}"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">IFSC Code</div>
+                        <div class="detail-value" th:text="${bankDetails.ifscCode}"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Account Type</div>
+                        <div class="detail-value" th:text="${bankDetails.accountType}"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">UPI ID</div>
+                        <div class="detail-value" th:text="${bankDetails.upiId}"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Submitted On</div>
+                        <div class="detail-value" th:text="${#temporals.format(bankDetails.submittedAt, 'dd MMM yyyy, HH:mm')}"></div>
+                    </div>
+                    <div th:if="${bankDetails.verifiedAt}" class="detail-row">
+                        <div class="detail-label">Verified On</div>
+                        <div class="detail-value" th:text="${#temporals.format(bankDetails.verifiedAt, 'dd MMM yyyy, HH:mm')}"></div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <div th:if="${bankDetails.verificationStatus.toString() == 'REJECTED' || bankDetails.verificationStatus.toString() == 'NEEDS_RESUBMISSION'}">
+                        <a href="/worker/bank-details" class="btn primary">Edit & Resubmit</a>
+                    </div>
+                    <a href="/worker/dashboard" class="btn secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUBMISSION FORM -->
+        <div th:unless="${hasSubmitted}">
+            <!-- INFO BOX -->
+            <div class="info-box">
+                <h4>📋 Why We Need Bank Details</h4>
+                <p>
+                    Bank details are required for payment processing and verification purposes. 
+                    Admin will verify your details before you can start accepting bookings.
+                </p>
+            </div>
+
+            <!-- BANK DETAILS FORM -->
+            <div class="card">
+                <h2>Submit Bank Details</h2>
+                
+                <form method="POST" action="/worker/submit-bank-details" enctype="multipart/form-data" onsubmit="return validateBankForm()">
+                    
+                    <!-- ACCOUNT HOLDER INFORMATION -->
+                    <div class="section-divider">
+                        <h3>Account Holder Information</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accountHolderName" class="required">Account Holder Name</label>
+                        <input 
+                            type="text" 
+                            id="accountHolderName" 
+                            name="accountHolderName" 
+                            required 
+                            placeholder="Full name as it appears on bank account">
+                        <div class="helper-text">Must match your bank account exactly</div>
+                    </div>
+
+                    <!-- BANK ACCOUNT DETAILS -->
+                    <div class="section-divider">
+                        <h3>Bank Account Details</h3>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accountNumber" class="required">Account Number</label>
+                            <input 
+                                type="text" 
+                                id="accountNumber" 
+                                name="accountNumber" 
+                                required 
+                                placeholder="Enter account number"
+                                pattern="[0-9]{9,18}"
+                                title="Account number must be 9-18 digits">
+                        </div>
+                        <div class="form-group">
+                            <label for="accountNumberConfirm" class="required">Confirm Account Number</label>
+                            <input 
+                                type="text" 
+                                id="accountNumberConfirm" 
+                                name="accountNumberConfirm" 
+                                required 
+                                placeholder="Re-enter account number">
+                            <div class="helper-text">Must match the account number above</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bankName" class="required">Bank Name</label>
+                            <input 
+                                type="text" 
+                                id="bankName" 
+                                name="bankName" 
+                                required 
+                                placeholder="e.g., State Bank of India">
+                        </div>
+                        <div class="form-group">
+                            <label for="branchName" class="required">Branch Name</label>
+                            <input 
+                                type="text" 
+                                id="branchName" 
+                                name="branchName" 
+                                required 
+                                placeholder="e.g., Bangalore Main Branch">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ifscCode" class="required">IFSC Code</label>
+                            <input 
+                                type="text" 
+                                id="ifscCode" 
+                                name="ifscCode" 
+                                required 
+                                placeholder="e.g., SBIN0001234"
+                                pattern="[A-Z]{4}0[A-Z0-9]{6}"
+                                title="IFSC code format: 4 letters + 0 + 6 alphanumeric characters"
+                                style="text-transform: uppercase;">
+                            <div class="helper-text">11 characters, format: ABCD0123456</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="accountType" class="required">Account Type</label>
+                            <select id="accountType" name="accountType" required>
+                                <option value="">Select account type</option>
+                                <option value="SAVINGS">Savings</option>
+                                <option value="CURRENT">Current</option>
+                                <option value="SALARY">Salary</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- IDENTIFICATION DETAILS -->
+                    <div class="section-divider">
+                        <h3>Identification Details</h3>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="panNumber" class="required">PAN Number</label>
+                            <input 
+                                type="text" 
+                                id="panNumber" 
+                                name="panNumber" 
+                                required 
+                                placeholder="e.g., AAAPB5055K"
+                                pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+                                title="Valid PAN format: 5 letters + 4 numbers + 1 letter"
+                                style="text-transform: uppercase; letter-spacing: 1px;">
+                            <div class="helper-text">Format: AAAAA0000A (10 characters)</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="aadharNumber" class="required">Aadhar Number</label>
+                            <input 
+                                type="text" 
+                                id="aadharNumber" 
+                                name="aadharNumber" 
+                                required 
+                                placeholder="12-digit Aadhar number"
+                                pattern="[0-9]{12}"
+                                title="Aadhar number must be 12 digits"
+                                inputmode="numeric">
+                            <div class="helper-text">12 digits (without spaces or hyphens)</div>
+                        </div>
+                    </div>
+
+                    <!-- UPI & ADDITIONAL -->
+                    <div class="section-divider">
+                        <h3>Payment Methods</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="upiId" class="required">UPI ID</label>
+                        <input 
+                            type="text" 
+                            id="upiId" 
+                            name="upiId" 
+                            required 
+                            placeholder="e.g., yourname@bank"
+                            pattern="[a-zA-Z0-9._-]+@[a-zA-Z0-9]+"
+                            title="Valid UPI format: username@bankname">
+                        <div class="helper-text">Format: yourname@bankname</div>
+                    </div>
+
+                    <!-- DOCUMENT UPLOADS -->
+                    <div class="section-divider">
+                        <h3>Supporting Documents (Optional)</h3>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>📄 Upload Supporting Documents</h4>
+                        <p>Upload PDF copies of your bank statement or passbook to speed up verification.</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bankStatement">Bank Statement (PDF, Max 5MB)</label>
+                            <input 
+                                type="file" 
+                                id="bankStatement" 
+                                name="bankStatement" 
+                                accept=".pdf"
+                                title="Upload a PDF file">
+                            <div class="helper-text">Recent bank statement showing account number clearly</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="passBook">Passbook (PDF, Max 5MB)</label>
+                            <input 
+                                type="file" 
+                                id="passBook" 
+                                name="passBook" 
+                                accept=".pdf"
+                                title="Upload a PDF file">
+                            <div class="helper-text">Passbook pages showing account holder and IFSC code</div>
+                        </div>
+                    </div>
+
+                    <!-- FORM ACTIONS -->
+                    <div class="form-actions">
+                        <button type="submit">Submit Bank Details</button>
+                        <button type="reset">Clear Form</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script>
+        function validateBankForm() {
+            const accountNum = document.getElementById('accountNumber').value;
+            const confirmNum = document.getElementById('accountNumberConfirm').value;
+            
+            if (accountNum !== confirmNum) {
+                alert('Account numbers do not match!');
+                return false;
+            }
+
+            // Verify PAN format
+            const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+            if (!panPattern.test(document.getElementById('panNumber').value.toUpperCase())) {
+                alert('Invalid PAN format!');
+                return false;
+            }
+
+            // Verify Aadhar format
+            if (document.getElementById('aadharNumber').value.length !== 12) {
+                alert('Aadhar number must be 12 digits!');
+                return false;
+            }
+
+            // Verify IFSC format
+            if (document.getElementById('ifscCode').value.length !== 11) {
+                alert('IFSC code must be 11 characters!');
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <title>Worker Registration | HomeEase</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    .registration-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .map-box {
+      position: sticky;
+      top: 20px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .map-box-header {
+      padding: 14px 16px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+      font-weight: 600;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .map-box-body {
+      padding: 14px;
+    }
+
+    #locationSearch {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+
+    #searchResults {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-result-item {
+      padding: 9px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .search-result-item:hover {
+      background: #f5f5f5;
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    #map {
+      width: 100%;
+      height: 240px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .locate-btn {
+      width: 100%;
+      background: #f5c518;
+      color: #000;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .locate-btn:hover {
+      background: #e6b800;
+    }
+
+    #locationDisplay {
+      display: none;
+      background: #f0f9ff;
+      border: 1px solid #bde3f5;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .filled-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .filled-field {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 11px;
+    }
+
+    .filled-field label {
+      display: block;
+      color: #888;
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+
+    .filled-field span {
+      font-weight: 600;
+      color: #333;
+    }
+
+    @media (max-width: 768px) {
+      .registration-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .map-box {
+        position: static;
+      }
+    }
+  </style>
+</head>
+
+<body data-chatbot-role="">
+  <section class="form-container">
+    <h2>Worker Registration</h2>
+
+    <div th:if="${error}" class="alert error">
+      <p th:text="${error}"></p>
+    </div>
+    <div th:if="${success}" class="alert success">
+      <p th:text="${success}"></p>
+    </div>
+
+    <form id="workerRegisterForm" action="/auth/register-worker" method="post" enctype="multipart/form-data">
+
+      <div class="registration-layout">
+
+        <!-- LEFT: Form Fields -->
+        <div class="form-fields">
+          <div class="form-grid">
+            <label for="profileImageFile">Profile Photo (Max 3MB, format image)</label>
+            <input type="file" name="profileImageFile" accept="image/png, image/jpeg, image/jpg" required>
+            <label for="verificationIdImage">Verification Document(Max 3MB, format image)</label>
+            <input type="file" name="verificationIdImage" accept="image/png, image/jpeg, image/jpg"  required>
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="tel" name="mobile" placeholder="Mobile Number" required>
+            <input type="password" name="password" placeholder="Password" pattern="(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}" title="Password must be 8-16 characters long, include at least one uppercase letter, one number, and one special character." required>
+            <input type="date" name="dob" required>
+
+            <select name="category" required>
+              <option value="">Select Category</option>
+              <option>Electrician</option>
+              <option>Plumber</option>
+              <option>Cleaner</option>
+              <option>Painter</option>
+              <option>Carpenter</option>
+            </select>
+
+            <input type="number" name="experience" placeholder="Experience (Years)" required>
+            <input type="number" name="minCharge" placeholder="Min Charge (₹)" required>
+            <input type="number" name="maxCharge" placeholder="Max Charge (₹)" required>
+            <textarea name="bio" rows="3" placeholder="Short Bio / Description"></textarea>
+
+          </div>
+
+          <!-- Hidden fields filled by map -->
+          <input type="hidden" name="city" id="cityField">
+          <input type="hidden" name="state" id="stateField">
+          <input type="hidden" name="pincode" id="pincodeField">
+
+          <div style="margin-top:16px;">
+            <a href="/oauth2/authorization/google?state=WORKER">
+              <button type="button" style="width:100%;">Continue with Google</button>
+            </a>
+          </div>
+
+          <button class="btn" style="width:100%; margin-top:12px;">Register</button>
+        </div>
+
+        <!-- RIGHT: Map Box -->
+        <div class="map-box">
+          <div class="map-box-header">📍 Select Your Location</div>
+          <div class="map-box-body">
+
+            <input type="text" id="locationSearch" placeholder="Search city, area or pincode..." autocomplete="off">
+            <div id="searchResults"></div>
+
+            <button type="button" class="locate-btn" onclick="getCurrentLocation()">
+              📡 Use My Current Location
+            </button>
+
+            <div id="map"></div>
+
+            <div id="locationDisplay"></div>
+
+            <div class="filled-fields" id="filledFields" style="display:none;">
+              <div class="filled-field">
+                <label>City</label>
+                <span id="cityDisplay">—</span>
+              </div>
+              <div class="filled-field">
+                <label>State</label>
+                <span id="stateDisplay">—</span>
+              </div>
+              <div class="filled-field">
+                <label>Pincode</label>
+                <span id="pincodeDisplay">—</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </section>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let map = null;
+    let marker = null;
+    let searchTimeout = null;
+
+    function initMap(lat, lng) {
+      if (!map) {
+        map = L.map('map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap',
+          maxZoom: 19
+        }).addTo(map);
+        map.on('click', function (e) {
+          placeMarker(e.latlng.lat, e.latlng.lng);
+          reverseGeocode(e.latlng.lat, e.latlng.lng);
+        });
+      } else {
+        map.setView([lat, lng], 15);
+      }
+      placeMarker(lat, lng);
+    }
+
+    function placeMarker(lat, lng) {
+      if (marker) {
+        marker.setLatLng([lat, lng]);
+      } else {
+        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        marker.on('dragend', function () {
+          const pos = marker.getLatLng();
+          reverseGeocode(pos.lat, pos.lng);
+        });
+      }
+    }
+
+    function getCurrentLocation() {
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported.');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        initMap(pos.coords.latitude, pos.coords.longitude);
+        reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+      }, function () {
+        alert('Could not get location. Please allow access.');
+      }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
+    }
+
+    document.getElementById('locationSearch').addEventListener('input', function () {
+      clearTimeout(searchTimeout);
+      const q = this.value.trim();
+      if (q.length < 3) {
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+      }
+      searchTimeout = setTimeout(() => searchPlace(q), 500);
+    });
+
+    function searchPlace(query) {
+      fetch('https://nominatim.openstreetmap.org/search?format=json&q='
+        + encodeURIComponent(query)
+        + '&countrycodes=in&limit=5&addressdetails=1',
+        { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then(results => {
+          const box = document.getElementById('searchResults');
+          box.innerHTML = '';
+          if (!results.length) { box.style.display = 'none'; return; }
+          box.style.display = 'block';
+          results.forEach(r => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.textContent = r.display_name;
+            item.onclick = () => {
+              document.getElementById('locationSearch').value = r.display_name;
+              box.style.display = 'none';
+              initMap(parseFloat(r.lat), parseFloat(r.lon));
+              fillFields(r.address, parseFloat(r.lat), parseFloat(r.lon));
+            };
+            box.appendChild(item);
+          });
+        }).catch(() => { });
+    }
+
+    function reverseGeocode(lat, lng) {
+      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='
+        + lat + '&lon=' + lng + '&addressdetails=1',
+        { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.address) {
+            fillFields(data.address, lat, lng);
+            document.getElementById('locationSearch').value = data.display_name || '';
+          }
+        }).catch(() => { });
+    }
+
+    function fillFields(address, lat, lng) {
+      const city = address.city || address.town || address.village || address.county || '';
+      const state = address.state || '';
+      const pincode = address.postcode || '';
+
+      document.getElementById('cityField').value = city;
+      document.getElementById('stateField').value = state;
+      document.getElementById('pincodeField').value = pincode;
+
+      document.getElementById('cityDisplay').textContent = city || '—';
+      document.getElementById('stateDisplay').textContent = state || '—';
+      document.getElementById('pincodeDisplay').textContent = pincode || '—';
+      document.getElementById('filledFields').style.display = 'grid';
+
+      const display = document.getElementById('locationDisplay');
+      display.style.display = 'block';
+      display.innerHTML = '✅ Location selected: <strong>' + city + '</strong>'
+        + (state ? ', ' + state : '')
+        + (pincode ? ' — ' + pincode : '');
+    }
+
+    document.getElementById('workerRegisterForm').addEventListener('submit', function (e) {
+      if (!document.getElementById('cityField').value) {
+        alert('Please select your location on the map.');
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#locationSearch') && !e.target.closest('#searchResults')) {
+        document.getElementById('searchResults').style.display = 'none';
+      }
+    });
+
+    window.addEventListener('load', function () {
+      initMap(20.5937, 78.9629);
+      map.setZoom(5);
+    });
+  </script>
+  <div th:replace="common/chatbot :: chatbot"></div>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+
+</html>

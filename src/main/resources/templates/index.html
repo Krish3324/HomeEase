@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HomeEase | Trusted Home Help</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-chatbot-role="">
+
+<!-- HEADER -->
+<header class="navbar">
+  <div class="logo">HomeEase</div>
+
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#services">Services</a>
+    <a href="#how">How It Works</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+    <a href="javascript:void(0)" onclick="openRolePopup()">Register</a>
+    <a href="/login" class="btn">Book Service</a>
+  </nav>
+
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#home">Home</a>
+  <a href="#services">Services</a>
+  <a href="#how">How It Works</a>
+  <a href="#about">About</a>
+  <a href="#contact">Contact</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-text">
+    <h1>Trusted Home Help, On-Demand</h1>
+    <p>Professional and verified home service providers at your doorstep.</p>
+    <div class="hero-buttons">
+        <button class="btn" onclick="window.location.href='/login'">Book Now</button>
+        <button class="btn-outline" onclick="window.location.href='/explore_service'">Explore Services</button>
+    </div>
+  </div>
+
+  <div class="hero-image">
+    <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511" alt="Home Service">
+  </div>
+</section>
+
+<section class="steps" id="services">
+  <h2>Home Care & Assistance Services</h2>
+
+  <div class="step-cards">
+    <div class="card">
+      <p>🧹 House Cleaning</p>
+    </div>
+
+    <div class="card">
+      <p>👨‍🍳 Home Chef</p>
+    </div>
+
+    <div class="card">
+      <p>👶 Babysitting & Child Care</p>
+    </div>
+
+    <div class="card">
+      <p>👵 Elderly Care (Old Age Nursing)</p>
+    </div>
+
+    <div class="card">
+      <p>🛠️ Home Maintenance</p>
+    </div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section class="steps" id="how">
+  <h2>Get Help in 3 Easy Steps</h2> 
+
+  <div class="step-cards">
+    <div class="card">
+      <h3>01</h3>
+      <p>Choose the service you need</p>
+    </div>
+
+    <div class="card">
+      <h3>02</h3>
+      <p>Book instantly online</p>
+    </div>
+
+    <div class="card">
+      <h3>03</h3>
+      <p>Relax while we handle it</p>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div>
+    <h2>About HomeEase</h2>
+    <p>
+      HomeEase connects households with trusted and verified professionals.
+      Our mission is to make home services simple, reliable, and fast.
+    </p>
+  </div>
+
+  <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952" alt="About">
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <h2>Contact Us</h2>
+
+  <form>
+    <input type="text" placeholder="Your Name" required>
+    <input type="email" placeholder="Your Email" required>
+    <textarea rows="4" placeholder="Your Message"></textarea>
+    <button class="btn">Send Message</button>
+  </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-content">
+    <div>
+      <h3>HomeEase</h3>
+      <p>Trusted Home Help, On-Demand</p>
+    </div>
+
+    <div>
+      <h4>Quick Links</h4>
+      <p>Services</p>
+      <p>About</p>
+      <p>Contact</p>
+    </div>
+
+    <div>
+      <h4>Contact</h4>
+      <p>support@homeease.com</p>
+      <p>+91 90000 00000</p>
+    </div>
+  </div>
+
+  <p class="copy">© 2026 HomeEase. All rights reserved.</p>
+</footer>
+
+<!-- SCROLL BUTTONS -->
+<button class="scroll-btn top" onclick="scrollTopPage()">↑</button>
+<button class="scroll-btn bottom" onclick="scrollBottomPage()">↓</button>
+
+<script src="/js/script.js"></script>
+
+<!-- ROLE SELECTION POPUP -->
+<div class="role-popup" id="rolePopup">
+  <div class="role-box">
+    <h2>Select Your Role</h2>
+
+    <button class="role-btn user" onclick="goToUserRegister()">
+      👤 Register as User
+    </button>
+
+    <button class="role-btn worker" onclick="goToWorkerRegister()">
+      🧑‍🔧 Register as Worker
+    </button>
+
+    <span class="close-btn" onclick="closeRolePopup()">✕</span>
+  </div>
+</div>
+<div th:replace="common/chatbot :: chatbot"></div>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

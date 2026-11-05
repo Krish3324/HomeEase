@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Quotation Requests – HomeEase</title>
+    <meta name="_csrf"        th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { background: #f4f6fb; font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+        /* ── PAGE WRAPPER ── */
+        .page-wrap {
+            max-width: 960px;
+            margin: 40px auto;
+            padding: 0 20px 60px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+        .page-sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 28px;
+        }
+
+        /* ── STATS GRID ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(234,231,220,0.8);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+        .stat-value { font-size: 32px; font-weight: 800; color: #6366f1; margin-bottom: 8px; }
+        .stat-label { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .stat-card.accepted .stat-value { color: #10b981; }
+        .stat-card.rejected .stat-value { color: #ef4444; }
+        .stat-card.pending .stat-value { color: #f59e0b; }
+
+        /* ── FILTER TABS ── */
+        .tab-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 9px 20px;
+            border: 1.5px solid #e2e8f0;
+            background: #fff;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+            transition: all .2s;
+        }
+        .tab-btn.active {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: #fff;
+        }
+        .tab-btn:hover:not(.active) { border-color: #6366f1; color: #6366f1; }
+
+        /* ── REQUEST CARD ── */
+        .request-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.06);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .request-card-header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .req-title { font-size: 18px; font-weight: 700; }
+        .req-meta  { font-size: 12px; opacity: .85; margin-top: 4px; }
+
+        .req-status-pill {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(255,255,255,.25);
+        }
+        .req-status-pill.OPEN   { background: rgba(255,255,255,.25); }
+        .req-status-pill.CLOSED { background: rgba(0,0,0,.25); }
+
+        .request-card-body { padding: 20px 24px; }
+
+        .req-desc {
+            background: #f8fafc;
+            border-left: 4px solid #6366f1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .req-info-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .req-info-row span strong { color: #1e293b; }
+
+        /* ── QUOTES SECTION ── */
+        .quotes-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        /* ── QUOTE CARD ── */
+        .quote-card {
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            transition: box-shadow .2s;
+        }
+        .quote-card:hover { box-shadow: 0 4px 14px rgba(99,102,241,.12); }
+
+        .quote-card.status-ACCEPTED {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+        .quote-card.status-REJECTED {
+            background: #fef2f2;
+            border-color: #f87171;
+            opacity: .75;
+        }
+        .quote-card.status-PENDING {
+            border-color: #fbbf24;
+        }
+
+        .q-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .badge-PENDING  { background: #fff8e1; color: #b45309; border: 1px solid #fde68a; }
+        .badge-ACCEPTED { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-REJECTED { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        .q-worker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .q-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#6366f1,#4f46e5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+        .q-worker-name { font-weight: 700; font-size: 14px; color: #1e293b; }
+        .q-worker-rating { font-size: 12px; color: #f59e0b; margin-top: 2px; }
+
+        .q-amount {
+            font-size: 26px;
+            font-weight: 800;
+            color: #6366f1;
+            margin-bottom: 8px;
+        }
+        .q-message {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.5;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            min-height: 38px;
+        }
+
+        .q-actions { display: flex; gap: 8px; }
+        .q-btn {
+            flex: 1;
+            padding: 9px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+        .q-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .q-btn:not(:disabled):hover { opacity: .85; }
+
+        .btn-accept  { background: #22c55e; color: #fff; }
+        .btn-reject  { background: #ef4444; color: #fff; }
+        .btn-booking { background: #6366f1; color: #fff; flex: unset; width: 100%; margin-top: 4px; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+
+        /* ── EMPTY / WAITING ── */
+        .waiting-box {
+            text-align: center;
+            padding: 28px;
+            background: #fffbeb;
+            border: 1.5px dashed #fcd34d;
+            border-radius: 12px;
+            color: #92400e;
+        }
+        .waiting-box .wicon { font-size: 32px; margin-bottom: 8px; }
+        .waiting-box p { margin: 0; font-size: 14px; font-weight: 500; }
+
+        /* ── CANCEL BAR ── */
+        .cancel-bar {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .btn-cancel-req {
+            padding: 10px 18px;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1.5px solid #fca5a5;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-cancel-req:hover { background: #fecaca; }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        .empty-state .eicon { font-size: 52px; margin-bottom: 14px; }
+        .empty-state p { font-size: 15px; }
+
+        /* ── LOADING ── */
+        .loading-state {
+            text-align: center;
+            padding: 60px;
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            z-index: 9999;
+            box-shadow: 0 6px 20px rgba(0,0,0,.18);
+            animation: slideIn .3s ease;
+            max-width: 320px;
+        }
+        .toast.success { background: #22c55e; }
+        .toast.error   { background: #ef4444; }
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0);    opacity: 1; }
+            to   { transform: translateX(120%); opacity: 0; }
+        }
+
+        @media (max-width: 600px) {
+            .quotes-grid { grid-template-columns: 1fr; }
+            .request-card-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="common/user-navbar :: userNavbar"></div>
+
+    <div class="page-wrap">
+        <h1 class="page-title">📋 My Quotation Requests</h1>
+        <p class="page-sub">View all your service requests and the quotes received from workers.</p>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Total Sent</div>
+            </div>
+            <div class="stat-card accepted">
+                <div class="stat-value" id="statAccepted">0</div>
+                <div class="stat-label">Accepted ✅</div>
+            </div>
+            <div class="stat-card rejected">
+                <div class="stat-value" id="statRejected">0</div>
+                <div class="stat-label">Rejected ❌</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-value" id="statPending">0</div>
+                <div class="stat-label">Pending ⏳</div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="tab-row">
+            <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
+            <button class="tab-btn" onclick="setFilter('OPEN', this)">Open</button>
+            <button class="tab-btn" onclick="setFilter('CLOSED', this)">Closed</button>
+        </div>
+
+        <!-- Content -->
+        <div id="content">
+            <div class="loading-state">⏳ Loading your requests...</div>
+        </div>
+    </div>
+
+    <div th:replace="common/footer :: footer"></div>
+
+    <script th:inline="none">
+        let allData   = [];
+        let curFilter = 'all';
+
+        const csrf        = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader  = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+        function getHeaders() {
+            const h = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (csrfHeader && csrf) h[csrfHeader] = csrf;
+            return h;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            load();
+            setInterval(load, 30000);
+        });
+
+        function load() {
+            fetch('/api/quotations/user/history')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        allData = data.history || [];
+                        render();
+                    } else {
+                        showErr('Failed to load requests: ' + (data.message || ''));
+                    }
+                })
+                .catch(() => showErr('Network error. Please refresh.'));
+        }
+
+        function setFilter(f, btn) {
+            curFilter = f;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            render();
+        }
+
+        function render() {
+            const el = document.getElementById('content');
+            
+            // Calculate and update stats based on allData
+            var totalSent = allData.length;
+            var acceptedCount = 0;
+            var rejectedCount = 0;
+            var pendingCount = 0;
+
+            for (var k = 0; k < allData.length; k++) {
+                var req = allData[k];
+                if (req.quotes && req.quotes.length > 0) {
+                    var hasAccepted = false;
+                    var allRejected = true;
+                    for (var m = 0; m < req.quotes.length; m++) {
+                        if (req.quotes[m].status === 'ACCEPTED') hasAccepted = true;
+                        if (req.quotes[m].status !== 'REJECTED') allRejected = false;
+                    }
+                    if (hasAccepted) acceptedCount++;
+                    else if (allRejected) rejectedCount++;
+                    else pendingCount++;
+                } else {
+                    pendingCount++; // No quotes yet, so it's pending
+                }
+            }
+
+            document.getElementById('statTotal').innerText = totalSent;
+            document.getElementById('statAccepted').innerText = acceptedCount;
+            document.getElementById('statRejected').innerText = rejectedCount;
+            document.getElementById('statPending').innerText = pendingCount;
+
+            let list = allData;
+            if (curFilter !== 'all') list = allData.filter(function(r) { return r.status === curFilter; });
+
+            if (list.length === 0) {
+                var msg = curFilter === 'all' ? "You haven't sent any quote requests yet." : 'No ' + curFilter.toLowerCase() + ' requests.';
+                el.innerHTML = '<div class="empty-state"><div class="eicon">📭</div><p>' + msg + '</p></div>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < list.length; i++) {
+                html += buildRequestCard(list[i]);
+            }
+            el.innerHTML = html;
+        }
+
+        function buildRequestCard(req) {
+            var hasAccepted = false;
+            if (req.quotes) {
+                for (var i = 0; i < req.quotes.length; i++) {
+                    if (req.quotes[i].status === 'ACCEPTED') hasAccepted = true;
+                }
+            }
+            var date = req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+            var quotesHtml = '';
+            if (!req.quotes || req.quotes.length === 0) {
+                quotesHtml = '<div class="waiting-box"><div class="wicon">⏳</div><p>Waiting for workers to submit quotes…</p></div>';
+            } else {
+                quotesHtml = '<p class="quotes-label">Worker Quotes (' + req.quotes.length + ')</p><div class="quotes-grid">';
+                for (var j = 0; j < req.quotes.length; j++) {
+                    quotesHtml += buildQuoteCard(req.quotes[j], hasAccepted, req.status);
+                }
+                quotesHtml += '</div>';
+            }
+
+            var cancelBtn = '';
+            if (req.status === 'OPEN') {
+                cancelBtn = '<div class="cancel-bar"><button class="btn-cancel-req" onclick="cancelRequest(' + req.requestId + ')">❌ Cancel This Request</button></div>';
+            }
+
+            var budgetStr = req.budget ? '&nbsp;·&nbsp; 💰 ₹' + Number(req.budget).toLocaleString('en-IN') : '';
+
+            var cardHtml = '<div class="request-card">' +
+                '<div class="request-card-header">' +
+                    '<div>' +
+                        '<div class="req-title">' + esc(req.category) + '</div>' +
+                        '<div class="req-meta">📅 ' + date + ' &nbsp;·&nbsp; 📍 ' + esc(req.pincode || '—') + ' &nbsp;·&nbsp; ⚡ ' + esc(req.urgency || 'NORMAL') + budgetStr + '</div>' +
+                    '</div>' +
+                    '<span class="req-status-pill ' + req.status + '">' + req.status + '</span>' +
+                '</div>' +
+                '<div class="request-card-body">' +
+                    '<div class="req-desc">' + esc(req.description || 'No description provided.') + '</div>' +
+                    quotesHtml +
+                    cancelBtn +
+                '</div>' +
+            '</div>';
+            return cardHtml;
+        }
+
+        function buildQuoteCard(q, hasAccepted, reqStatus) {
+            var st      = q.status || 'PENDING';
+            var initial = q.workerName ? q.workerName.charAt(0).toUpperCase() : '?';
+            var rating  = (q.workerRating != null) ? '⭐ ' + Number(q.workerRating).toFixed(1) : '';
+            var amount  = (q.amount != null) ? '₹' + Number(q.amount).toLocaleString('en-IN') : '₹—';
+            var msg     = q.message || 'No message provided.';
+
+            var badgeLabel = '', badgeClass = '';
+            if (st === 'ACCEPTED') { badgeLabel = '✅ Accepted'; badgeClass = 'badge-ACCEPTED'; }
+            else if (st === 'REJECTED') { badgeLabel = '✗ Rejected'; badgeClass = 'badge-REJECTED'; }
+            else { badgeLabel = '⏳ Awaiting Decision'; badgeClass = 'badge-PENDING'; }
+
+            var actions = '';
+            if (st === 'PENDING' && !hasAccepted && reqStatus === 'OPEN') {
+                actions = '<div class="q-actions">' +
+                        '<button class="q-btn btn-accept" onclick="acceptQuote(' + q.quoteId + ', this)">✓ Accept</button>' +
+                        '<button class="q-btn btn-reject" onclick="rejectQuote(' + q.quoteId + ', this)">✗ Reject</button>' +
+                    '</div>';
+            } else if (st === 'ACCEPTED') {
+                actions = '<a href="/user/bookings" class="q-btn btn-booking">📋 View My Booking</a>';
+            } else if (st === 'REJECTED') {
+                actions = '<button class="q-btn btn-reject" disabled>✗ Rejected</button>';
+            }
+
+            var ratingHtml = rating ? '<div class="q-worker-rating">' + rating + '</div>' : '';
+
+            var card = '<div class="quote-card status-' + st + '">' +
+                '<div class="q-status-badge ' + badgeClass + '">' + badgeLabel + '</div>' +
+                '<div class="q-worker-row">' +
+                    '<div class="q-avatar">' + initial + '</div>' +
+                    '<div>' +
+                        '<div class="q-worker-name">' + esc(q.workerName || 'Unknown Worker') + '</div>' +
+                        ratingHtml +
+                    '</div>' +
+                '</div>' +
+                '<div class="q-amount">' + amount + '</div>' +
+                '<div class="q-message">' + esc(msg) + '</div>' +
+                actions +
+            '</div>';
+            return card;
+        }
+
+        function acceptQuote(quoteId, btn) {
+            if (!confirm('Accept this quote? A booking will be created and other quotes will be closed.')) return;
+            btn.disabled = true; btn.textContent = '…';
+            const h = getHeaders();
+            fetch('/api/quotations/user/accept-quote/' + quoteId, { method: 'POST', headers: h })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.status === 'success') {
+                    toast('✅ Quote accepted! Booking #' + d.bookingId + ' created.', 'success');
+                    setTimeout(load, 1500);
+                } else {
+                    toast('❌ ' + (d.message || 'Failed to accept.'), 'error');
+                    btn.disabled = false; btn.textContent = '✓ Accept';
+                }
+            })
+            .catch(function() { toast('❌ Network error.', 'error'); btn.disabled = false; btn.textContent = '✓ Accept'; });
+        }
+
+        function rejectQuote(quoteId, btn) {
+            if (!confirm('Reject this quote?')) return;
+            btn.disabled = true; btn.textContent = '…';
+            const h = getHeaders();
+            fetch('/api/quotations/user/reject-quote/' + quoteId, { method: 'POST', headers: h })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.status === 'success') {
+                    toast('Quote rejected.', 'success');
+                    setTimeout(load, 1500);
+                } else {
+                    toast('❌ ' + d.message, 'error');
+                    btn.disabled = false; btn.textContent = '✗ Reject';
+                }
+            })
+            .catch(function() { toast('❌ Network error.', 'error'); btn.disabled = false; btn.textContent = '✗ Reject'; });
+        }
+
+        function cancelRequest(requestId) {
+            if (!confirm('Cancel this request? This cannot be undone.')) return;
+            const h = getHeaders();
+            fetch('/api/quotations/user/cancel-request/' + requestId, { method: 'POST', headers: h })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.status === 'success') { toast('Request cancelled.', 'success'); setTimeout(load, 1500); }
+                else toast('❌ ' + (d.message || 'Error.'), 'error');
+            })
+            .catch(function() { toast('❌ Network error.', 'error'); });
+        }
+
+        function toast(msg, type) {
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(function() {
+                t.style.animation = 'slideOut .3s ease forwards';
+                setTimeout(function() { t.remove(); }, 300);
+            }, 3500);
+        }
+
+        function showErr(msg) {
+            document.getElementById('content').innerHTML =
+                '<div class="empty-state"><div class="eicon">⚠️</div><p>' + esc(msg) + '</p></div>';
+        }
+
+        function esc(s) {
+            if (s == null) return '';
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+    </script>
+</body>
+</html>

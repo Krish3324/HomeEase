@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Book Worker | HomeEase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fb;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h2 { margin: 0; color: #c9a84c; font-size: 22px; }
+        .header a { text-decoration: none; color: #555; font-weight: 600; font-size: 14px; }
+        .header a:hover { color: #c9a84c; }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 36px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* ── LEFT: FORM ── */
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .form-card-header {
+            background: linear-gradient(135deg, #c9a84c, #e8cc7a);
+            padding: 24px 28px;
+            color: white;
+        }
+
+        .form-card-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .form-card-header p  { font-size: 13px; opacity: 0.88; }
+
+        .worker-summary {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 28px;
+            background: #fffdf5;
+            border-bottom: 1px solid #f0ead0;
+        }
+
+        .worker-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e8cc7a, #c9a84c);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800; color: #fff;
+            flex-shrink: 0;
+        }
+
+        .worker-info-name { font-size: 16px; font-weight: 700; color: #1c1c1c; }
+        .worker-info-meta { font-size: 13px; color: #777; margin-top: 3px; }
+        .worker-info-meta span { margin-right: 12px; }
+
+        .charge-pill {
+            margin-left: auto;
+            background: #fffbeb;
+            border: 1px solid #e8d5a0;
+            color: #c9a84c;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .form-body { padding: 24px 28px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #c9a84c;
+            background: #fff;
+        }
+
+        .form-group textarea { resize: vertical; min-height: 90px; }
+
+        /* Address display box */
+        #addressDisplay {
+            display: none;
+            background: #f0f9ff;
+            border: 1.5px solid #bde3f5;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #c9a84c, #e8cc7a);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #b8952f, #d4b85a);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(201,168,76,0.35);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── DIVIDER ── */
+        .divider {
+            text-align: center;
+            color: #aaa;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 14px 0;
+            position: relative;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 44%;
+            height: 1px;
+            background: #e8e8e8;
+        }
+        .divider::before { left: 0; }
+        .divider::after  { right: 0; }
+
+        /* ── QUOTE BUTTON ── */
+        .quote-btn {
+            width: 100%;
+            padding: 13px;
+            background: white;
+            color: #c9a84c;
+            border: 2px solid #c9a84c;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .quote-btn:hover {
+            background: #fffbeb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(201,168,76,0.2);
+        }
+
+        /* ── QUOTE MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .modal-header h3 { font-size: 18px; font-weight: 700; color: #1c1c1c; }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+            padding: 0;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        .modal-close:hover { color: #333; }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .modal-alert-success {
+            background: #e6f9e6;
+            color: #2e7d32;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .modal-alert-error {
+            background: #ffe6e6;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        /* ── RIGHT: MAP ── */
+        .map-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            position: sticky;
+            top: 90px;
+        }
+
+        .map-card-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .map-card-header h3 { font-size: 15px; font-weight: 700; color: #1c1c1c; }
+        .map-card-header p  { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .map-card-body { padding: 16px; }
+
+        #locationSearch {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        #locationSearch:focus {
+            outline: none;
+            border-color: #c9a84c;
+        }
+
+        #searchResults {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            max-height: 160px;
+            overflow-y: auto;
+            display: none;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .search-result-item {
+            padding: 10px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .search-result-item:hover { background: #fffbeb; }
+        .search-result-item:last-child { border-bottom: none; }
+
+        .locate-btn {
+            width: 100%;
+            background: #c9a84c;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 12px;
+            transition: background 0.2s;
+        }
+
+        .locate-btn:hover { background: #b8952f; }
+
+        #map {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .filled-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .filled-field {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+
+        .filled-field label {
+            display: block;
+            color: #888;
+            font-size: 10px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filled-field span { font-weight: 700; color: #333; }
+
+        .map-note {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .alert-success {
+            background: #e6f9e6;
+            color: #2e7d32;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #ffe6e6;
+            color: #c62828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .page-container { grid-template-columns: 1fr; }
+            .map-card { position: static; }
+            .form-row { grid-template-columns: 1fr; }
+            .modal-box { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body data-chatbot-role="USER">
+
+<!-- HEADER -->
+<div th:replace="common/user-navbar :: userNavbar"></div>
+
+<div class="page-container">
+
+    <!-- LEFT: BOOKING FORM -->
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2>Book a Service</h2>
+            <p>Fill in the details and pin your service location on the map</p>
+        </div>
+
+        <!-- Worker Summary -->
+        <div class="worker-summary">
+            <div class="worker-avatar"
+                 th:text="${worker.name != null ? worker.name.substring(0,1).toUpperCase() : 'W'}">W</div>
+            <div>
+                <div class="worker-info-name" th:text="${worker.name}">Worker Name</div>
+                <div class="worker-info-meta">
+                    <span th:text="${worker.category}">Category</span>
+                    <span>📍 <span th:text="${worker.city}">City</span></span>
+                    <span>⭐ <span th:text="${worker.rating}">0.0</span></span>
+                </div>
+            </div>
+            <div class="charge-pill">
+                <div th:if="${rebookingDiscountApplied}" style="font-size: 11px; text-decoration: line-through; opacity: 0.6; margin-right: 5px;">
+                    ₹<span th:text="${originalAmount}">0</span>
+                </div>
+                ₹<span th:text="${discountedAmount}">0</span>
+                <span th:if="${rebookingDiscountApplied}" style="margin-left: 8px; background: #e6f9e6; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 10px; border: 1px solid #c5e9c5;">
+                    Rebooking Discount! 20% OFF
+                </span>
+            </div>
+        </div>
+
+        <div class="form-body">
+
+            <!-- Alerts -->
+            <div th:if="${success}" class="alert-success" th:text="${success}"></div>
+            <div th:if="${error}"   class="alert-error"   th:text="${error}"></div>
+
+            <form id="bookingForm" th:action="@{/user/book-worker}" method="post">
+
+                <!-- Hidden Worker ID -->
+                <input type="hidden" name="workerId" th:value="${worker.id}"/>
+
+                <!-- Hidden location fields filled by map -->
+                <input type="hidden" name="latitude"  id="latField">
+                <input type="hidden" name="longitude" id="lngField">
+                <input type="hidden" name="city"      id="cityField">
+                <input type="hidden" name="state"     id="stateField">
+                <input type="hidden" name="pincode"   id="pincodeField">
+                <input type="hidden" name="address"   id="addressField">
+
+                <!-- Date & Time -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Service Date</label>
+                        <input type="date" name="date" id="dateInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Time</label>
+                        <input type="time" name="time" required>
+                    </div>
+                </div>
+
+                <!-- Selected address display -->
+                <div id="addressDisplay">
+                    📍 <span id="addressText">No location selected</span>
+                </div>
+
+                <!-- Problem Description -->
+                <div class="form-group">
+                    <label>Problem Description</label>
+                    <textarea name="description"
+                              placeholder="Describe the issue in detail so the worker can prepare..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    ✅ Confirm Booking
+                </button>
+
+            </form>
+
+            <!-- OR DIVIDER -->
+            <div class="divider">OR</div>
+
+            <!-- REQUEST QUOTES BUTTON -->
+            <button type="button" class="quote-btn" onclick="openQuoteModal()">
+                💬 Request Quotes from Workers
+            </button>
+
+        </div>
+    </div>
+
+    <!-- RIGHT: MAP -->
+    <div class="map-card">
+        <div class="map-card-header">
+            <div>
+                <h3>📍 Pin Your Service Location</h3>
+                <p>Search, click on map, or use current location</p>
+            </div>
+        </div>
+        <div class="map-card-body">
+
+            <input type="text" id="locationSearch"
+                   placeholder="Search your address or area..."
+                   autocomplete="off">
+            <div id="searchResults"></div>
+
+            <button type="button" class="locate-btn" onclick="getCurrentLocation()">
+                📡 Use My Current Location
+            </button>
+
+            <div id="map"></div>
+
+            <div class="filled-fields" id="filledFields" style="display:none;">
+                <div class="filled-field">
+                    <label>City</label>
+                    <span id="cityDisplay">—</span>
+                </div>
+                <div class="filled-field">
+                    <label>State</label>
+                    <span id="stateDisplay">—</span>
+                </div>
+                <div class="filled-field">
+                    <label>Pincode</label>
+                    <span id="pincodeDisplay">—</span>
+                </div>
+            </div>
+
+            <p class="map-note">🖱 Click anywhere on the map or drag the marker to set your location</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══════════ REQUEST QUOTES MODAL ══════════ -->
+<div class="modal-overlay" id="quoteModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>💬 Request Quotes</h3>
+            <button class="modal-close" onclick="closeQuoteModal()">✕</button>
+        </div>
+        <p class="modal-subtitle">Workers in your area will send you their best price. Compare and accept the one you like.</p>
+
+        <!-- Modal Alerts -->
+        <div class="modal-alert-success" id="quoteSuccess"></div>
+        <div class="modal-alert-error"   id="quoteError"></div>
+
+        <!-- Category (auto-filled, readonly) -->
+        <div class="form-group">
+            <label>Service Category</label>
+            <input type="text" id="qCategory" th:value="${worker.category}" readonly
+                   style="background:#f5f5f5; cursor:not-allowed; color:#666;">
+        </div>
+
+        <!-- Problem Description -->
+        <div class="form-group">
+            <label>Problem Description</label>
+            <textarea id="qDescription" rows="3"
+                      placeholder="Describe your problem clearly so workers can quote accurately..."></textarea>
+        </div>
+
+        <!-- Location Selection -->
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#888;margin-bottom:8px;">Service Location</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                <button type="button" onclick="useCurrentLocationForQuote()" style="padding:10px 8px;background:#c9a84c;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">📡 Use My Current Location</button>
+                <button type="button" onclick="toggleQuoteMap()" id="toggleMapBtn" style="padding:10px 8px;background:white;color:#c9a84c;border:2px solid #c9a84c;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">🗺 Select on Map</button>
+            </div>
+            <div id="qfMapContainer" style="display:none;">
+                <div id="qfMap" style="width:100%;height:220px;border-radius:10px;border:1.5px solid #e8e8e8;margin-bottom:8px;"></div>
+                <p style="font-size:11px;color:#999;text-align:center;margin:0;">Click map or drag pin to set location</p>
+            </div>
+        </div>
+
+        <input type="hidden" id="qLat">
+        <input type="hidden" id="qLng">
+
+        <!-- Pincode + Budget -->
+        <div class="form-row">
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Your Pincode</label>
+                <input type="text" id="qPincode" placeholder="e.g. 380015" maxlength="6"
+                       oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Budget (Optional) ₹</label>
+                <input type="number" id="qBudget" placeholder="e.g. 500" min="0">
+            </div>
+        </div>
+
+        <!-- Urgency -->
+        <div class="form-group" style="margin-top:16px;">
+            <label>Urgency</label>
+            <select id="qUrgency">
+                <option value="NORMAL">Normal — within 2-3 days</option>
+                <option value="URGENT">Urgent — today / tomorrow</option>
+                <option value="FLEXIBLE">Flexible — anytime this week</option>
+            </select>
+        </div>
+
+        <button type="button" class="submit-btn" id="sendQuoteBtn" onclick="submitQuoteRequest()" style="margin-top:4px;">
+            🚀 Send Quote Request
+        </button>
+
+        <p style="font-size:12px; color:#aaa; text-align:center; margin-top:12px;">
+            You can view all received quotes under <a href="/user/my-quotes" style="color:#c9a84c; font-weight:600;">My Quotes</a>
+        </p>
+
+    </div>
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map = null;
+    let marker = null;
+    let searchTimeout = null;
+
+    // Set min date to today
+    document.getElementById('dateInput').min = new Date().toISOString().split('T')[0];
+
+    function initMap(lat, lng) {
+        if (!map) {
+            map = L.map('map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap', maxZoom: 19
+            }).addTo(map);
+            map.on('click', function(e) {
+                placeMarker(e.latlng.lat, e.latlng.lng);
+                reverseGeocode(e.latlng.lat, e.latlng.lng);
+            });
+        } else {
+            map.setView([lat, lng], 15);
+        }
+        placeMarker(lat, lng);
+    }
+
+    function placeMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.on('dragend', function() {
+                const pos = marker.getLatLng();
+                reverseGeocode(pos.lat, pos.lng);
+            });
+        }
+    }
+
+    function getCurrentLocation() {
+        if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            initMap(pos.coords.latitude, pos.coords.longitude);
+            reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        }, function() {
+            alert('Could not get location. Please allow access.');
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    }
+
+    document.getElementById('locationSearch').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const q = this.value.trim();
+        if (q.length < 3) { document.getElementById('searchResults').style.display = 'none'; return; }
+        searchTimeout = setTimeout(() => searchPlace(q), 500);
+    });
+
+    function searchPlace(query) {
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q='
+              + encodeURIComponent(query)
+              + '&countrycodes=in&limit=5&addressdetails=1',
+              { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then(results => {
+            const box = document.getElementById('searchResults');
+            box.innerHTML = '';
+            if (!results.length) { box.style.display = 'none'; return; }
+            box.style.display = 'block';
+            results.forEach(r => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                item.textContent = r.display_name;
+                item.onclick = () => {
+                    document.getElementById('locationSearch').value = r.display_name;
+                    box.style.display = 'none';
+                    initMap(parseFloat(r.lat), parseFloat(r.lon));
+                    fillFields(r.address, parseFloat(r.lat), parseFloat(r.lon), r.display_name);
+                };
+                box.appendChild(item);
+            });
+        }).catch(() => {});
+    }
+
+    function reverseGeocode(lat, lng) {
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='
+              + lat + '&lon=' + lng + '&addressdetails=1',
+              { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.address) {
+                fillFields(data.address, lat, lng, data.display_name);
+                document.getElementById('locationSearch').value = data.display_name || '';
+
+                // Auto-fill pincode in quote modal if not already filled
+                const pinField = document.getElementById('qPincode');
+                if (pinField && !pinField.value && data.address.postcode) {
+                    pinField.value = data.address.postcode;
+                }
+            }
+        }).catch(() => {});
+    }
+
+    function fillFields(address, lat, lng, displayName) {
+        const city    = address.city || address.town || address.village || address.county || '';
+        const state   = address.state   || '';
+        const pincode = address.postcode || '';
+
+        document.getElementById('latField').value     = lat;
+        document.getElementById('lngField').value     = lng;
+        document.getElementById('cityField').value    = city;
+        document.getElementById('stateField').value   = state;
+        document.getElementById('pincodeField').value = pincode;
+        document.getElementById('addressField').value = displayName || (city + ', ' + state);
+
+        document.getElementById('cityDisplay').textContent    = city    || '—';
+        document.getElementById('stateDisplay').textContent   = state   || '—';
+        document.getElementById('pincodeDisplay').textContent = pincode || '—';
+        document.getElementById('filledFields').style.display = 'grid';
+
+        const display = document.getElementById('addressDisplay');
+        display.style.display = 'block';
+        const short = city + (state ? ', ' + state : '') + (pincode ? ' — ' + pincode : '');
+        document.getElementById('addressText').textContent = short;
+
+        // Auto-fill pincode in quote modal
+        const pinField = document.getElementById('qPincode');
+        if (pinField && pincode) pinField.value = pincode;
+    }
+
+    // Validate before submit
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        if (!document.getElementById('latField').value) {
+            alert('Please select your service location on the map.');
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#locationSearch') && !e.target.closest('#searchResults')) {
+            document.getElementById('searchResults').style.display = 'none';
+        }
+    });
+
+    // Init map on load
+    window.addEventListener('load', function() {
+        initMap(20.5937, 78.9629);
+        map.setZoom(5);
+    });
+
+    let qfMap = null;
+    let qfMarker = null;
+    let qfMapVisible = false;
+
+    function useCurrentLocationForQuote() {
+        if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            document.getElementById('qLat').value = lat;
+            document.getElementById('qLng').value = lng;
+            // Show map
+            showQuoteMap();
+            initQuoteMap(lat, lng);
+            // Reverse geocode for pincode
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1',
+                  { headers: { 'Accept-Language': 'en' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.address && data.address.postcode) {
+                    document.getElementById('qPincode').value = data.address.postcode.replace(/\s+/g, '');
+                }
+            }).catch(() => {});
+        }, function() {
+            alert('Could not get location. Please allow access or use the map.');
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    }
+
+    function toggleQuoteMap() {
+        if (qfMapVisible) {
+            document.getElementById('qfMapContainer').style.display = 'none';
+            document.getElementById('toggleMapBtn').textContent = '🗺 Select on Map';
+            qfMapVisible = false;
+        } else {
+            showQuoteMap();
+            if (!qfMap) {
+                // init at India center if no location yet
+                const lat = parseFloat(document.getElementById('qLat').value) || 20.5937;
+                const lng = parseFloat(document.getElementById('qLng').value) || 78.9629;
+                initQuoteMap(lat, lng);
+                if (!document.getElementById('qLat').value) qfMap.setZoom(5);
+            } else {
+                setTimeout(() => qfMap.invalidateSize(), 50);
+            }
+        }
+    }
+
+    function showQuoteMap() {
+        document.getElementById('qfMapContainer').style.display = 'block';
+        document.getElementById('toggleMapBtn').textContent = '✕ Close Map';
+        qfMapVisible = true;
+    }
+
+    function initQuoteMap(lat, lng) {
+        if (!qfMap) {
+            qfMap = L.map('qfMap').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap', maxZoom: 19
+            }).addTo(qfMap);
+            qfMap.on('click', function(e) {
+                placeQuoteMarker(e.latlng.lat, e.latlng.lng);
+                reverseGeocodeQuote(e.latlng.lat, e.latlng.lng);
+            });
+        } else {
+            qfMap.setView([lat, lng], 15);
+        }
+        placeQuoteMarker(lat, lng);
+        setTimeout(() => qfMap.invalidateSize(), 100);
+    }
+
+    function placeQuoteMarker(lat, lng) {
+        document.getElementById('qLat').value = lat;
+        document.getElementById('qLng').value = lng;
+        if (qfMarker) {
+            qfMarker.setLatLng([lat, lng]);
+        } else {
+            qfMarker = L.marker([lat, lng], { draggable: true }).addTo(qfMap);
+            qfMarker.on('dragend', function() {
+                const pos = qfMarker.getLatLng();
+                document.getElementById('qLat').value = pos.lat;
+                document.getElementById('qLng').value = pos.lng;
+                reverseGeocodeQuote(pos.lat, pos.lng);
+            });
+        }
+    }
+
+    function reverseGeocodeQuote(lat, lng) {
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1',
+              { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.address && data.address.postcode) {
+                document.getElementById('qPincode').value = data.address.postcode.replace(/\s+/g, '');
+            }
+        }).catch(() => {});
+    }
+
+    // ══════════ QUOTE MODAL FUNCTIONS ══════════
+
+    function openQuoteModal() {
+        document.getElementById('quoteModal').classList.add('active');
+        document.getElementById('quoteSuccess').style.display = 'none';
+        document.getElementById('quoteError').style.display   = 'none';
+        document.getElementById('qDescription').value = '';
+        document.getElementById('qBudget').value      = '';
+        document.getElementById('qUrgency').value     = 'NORMAL';
+        // Reset map toggle
+        document.getElementById('qfMapContainer').style.display = 'none';
+        document.getElementById('toggleMapBtn').textContent = '🗺 Select on Map';
+        qfMapVisible = false;
+        document.getElementById('qLat').value = '';
+        document.getElementById('qLng').value = '';
+
+        // Pre-fill pincode from the main booking map if available
+        const mapPincode = document.getElementById('pincodeField').value;
+        if (mapPincode) document.getElementById('qPincode').value = mapPincode;
+        // Also pre-fill lat/lng from main map
+        const mapLat = document.getElementById('latField').value;
+        const mapLng = document.getElementById('lngField').value;
+        if (mapLat) document.getElementById('qLat').value = mapLat;
+        if (mapLng) document.getElementById('qLng').value = mapLng;
+
+        const btn = document.getElementById('sendQuoteBtn');
+        btn.disabled    = false;
+        btn.textContent = '🚀 Send Quote Request';
+    }
+
+    function closeQuoteModal() {
+        document.getElementById('quoteModal').classList.remove('active');
+    }
+
+    // Close modal when clicking outside the box
+    document.getElementById('quoteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeQuoteModal();
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeQuoteModal();
+    });
+
+    function submitQuoteRequest() {
+        const category    = document.getElementById('qCategory').value.trim();
+        const description = document.getElementById('qDescription').value.trim();
+        const pincode     = document.getElementById('qPincode').value.trim();
+        const budget      = document.getElementById('qBudget').value.trim();
+        const urgency     = document.getElementById('qUrgency').value;
+
+        const errBox = document.getElementById('quoteError');
+        const okBox  = document.getElementById('quoteSuccess');
+        errBox.style.display = 'none';
+        okBox.style.display  = 'none';
+
+        // Validation
+        if (!description) {
+            errBox.textContent   = 'Please describe your problem.';
+            errBox.style.display = 'block';
+            document.getElementById('qDescription').focus();
+            return;
+        }
+        if (!pincode || pincode.length !== 6) {
+            errBox.textContent   = 'Please enter a valid 6-digit pincode.';
+            errBox.style.display = 'block';
+            document.getElementById('qPincode').focus();
+            return;
+        }
+
+        const btn = document.getElementById('sendQuoteBtn');
+        btn.disabled    = true;
+        btn.textContent = '⏳ Sending...';
+
+        const params = new URLSearchParams({
+            category,
+            problemDescription: description,
+            urgency,
+            pincode
+        });
+        if (budget) params.append('budget', budget);
+        const lat = document.getElementById('qLat').value;
+        const lng = document.getElementById('qLng').value;
+        if (lat) params.append('latitude',  lat);
+        if (lng) params.append('longitude', lng);
+
+        fetch('/user/request-quotes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                okBox.innerHTML    = '✅ ' + data.message + ' — <a href="/user/my-quotes" style="color:#2e7d32; font-weight:700;">View My Quotes →</a>';
+                okBox.style.display = 'block';
+                btn.textContent     = '✅ Request Sent!';
+                // Auto-close after 4 seconds
+                setTimeout(() => {
+                    closeQuoteModal();
+                    btn.disabled    = false;
+                    btn.textContent = '🚀 Send Quote Request';
+                }, 4000);
+            } else {
+                errBox.textContent   = data.message || 'Something went wrong. Please try again.';
+                errBox.style.display = 'block';
+                btn.disabled         = false;
+                btn.textContent      = '🚀 Send Quote Request';
+            }
+        })
+        .catch(() => {
+            errBox.textContent   = 'Network error. Please check your connection and try again.';
+            errBox.style.display = 'block';
+            btn.disabled         = false;
+            btn.textContent      = '🚀 Send Quote Request';
+        });
+    }
+</script>
+
+<div th:replace="common/chatbot :: chatbot"></div>
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Details Verification | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --white: #ffffff;
+            --off-white: #f9f8f5;
+            --text-dark: #181818;
+            --text-mid: #4a4a45;
+            --text-light: #909088;
+            --border: rgba(234,231,220,0.6);
+            --success: #059669;
+            --warning: #f59e0b;
+            --error: #dc2626;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #faf7ef;
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            padding: 40px 8%;
+            background: var(--off-white);
+            min-height: 80vh;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* FILTER TABS */
+        .filter-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        .filter-tab {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s;
+            position: relative;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .filter-tab:hover {
+            color: var(--text-dark);
+        }
+
+        .filter-tab.active {
+            color: var(--gold);
+        }
+
+        .filter-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -17px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        /* STATS */
+        .stats-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* ALERTS */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: var(--success);
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--error);
+        }
+
+        /* TABLE */
+        .table-wrapper {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--off-white);
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        tbody tr:hover {
+            background: #fafbf9;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* STATUS BADGES */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.pending {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .badge.verified {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.rejected {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .badge.resubmit {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        /* ACTION BUTTONS */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn.view {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--white);
+        }
+
+        .btn.view:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(201,168,76,0.3);
+        }
+
+        .btn.verify {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn.verify:hover {
+            background: #047857;
+        }
+
+        .btn.reject {
+            background: var(--error);
+            color: var(--white);
+        }
+
+        .btn.reject:hover {
+            background: #b91c1c;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .close {
+            color: var(--text-light);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+
+        .close:hover {
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .form-group textarea,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-actions .btn-primary {
+            background: var(--gold);
+            color: var(--white);
+        }
+
+        .form-actions .btn-secondary {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+
+        @media (max-width: 768px) {
+            .page-wrapper { padding: 24px; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .filter-tabs { flex-direction: column; }
+            .table-wrapper { overflow-x: auto; }
+            .action-buttons { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <div th:replace="common/admin-navbar :: adminNavbar"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-wrapper">
+        <div class="page-header">
+            <div>
+                <h2>Bank Details Verification</h2>
+                <p>Review and verify worker bank details for payment processing</p>
+            </div>
+        </div>
+
+        <!-- ALERTS -->
+        <div th:if="${#request.getAttribute('successMsg')}" class="alert success">
+            ✓ <span th:text="${#request.getAttribute('successMsg')}"></span>
+        </div>
+        <div th:if="${#request.getAttribute('errorMsg')}" class="alert error">
+            ✗ <span th:text="${#request.getAttribute('errorMsg')}"></span>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-box">
+            <div class="stat-card">
+                <div class="number" th:text="${pendingCount}">0</div>
+                <div class="label">Pending Review</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" th:text="${verifiedCount}">0</div>
+                <div class="label">Verified</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" th:text="${#lists.size(bankDetailsList)}">0</div>
+                <div class="label">Total</div>
+            </div>
+        </div>
+
+        <!-- FILTER TABS -->
+        <div class="filter-tabs">
+            <a th:href="@{/admin/bank-details}" th:classappend="${filter == 'all' ? 'active' : ''}" class="filter-tab">
+                All
+            </a>
+            <a th:href="@{/admin/bank-details?filter=pending}" th:classappend="${filter == 'pending' ? 'active' : ''}" class="filter-tab">
+                Pending Review
+            </a>
+            <a th:href="@{/admin/bank-details?filter=verified}" th:classappend="${filter == 'verified' ? 'active' : ''}" class="filter-tab">
+                Verified
+            </a>
+            <a th:href="@{/admin/bank-details?filter=rejected}" th:classappend="${filter == 'rejected' ? 'active' : ''}" class="filter-tab">
+                Rejected
+            </a>
+            <a th:href="@{/admin/bank-details?filter=resubmit}" th:classappend="${filter == 'resubmit' ? 'active' : ''}" class="filter-tab">
+                Needs Resubmission
+            </a>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div th:if="${#lists.isEmpty(bankDetailsList)}" class="empty-state">
+            <h3>No bank details found</h3>
+            <p>No bank details submissions match the current filter</p>
+        </div>
+
+        <!-- TABLE -->
+        <div th:if="${!#lists.isEmpty(bankDetailsList)}" class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Worker Name</th>
+                        <th>Email</th>
+                        <th>Bank Name</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="bd : ${bankDetailsList}">
+                        <td th:text="${bd.worker.name}"></td>
+                        <td th:text="${bd.worker.email}"></td>
+                        <td th:text="${bd.bankName}"></td>
+                        <td>
+                            <span th:if="${bd.verificationStatus.toString() == 'PENDING'}" class="badge pending">Pending</span>
+                            <span th:if="${bd.verificationStatus.toString() == 'VERIFIED'}" class="badge verified">Verified</span>
+                            <span th:if="${bd.verificationStatus.toString() == 'REJECTED'}" class="badge rejected">Rejected</span>
+                            <span th:if="${bd.verificationStatus.toString() == 'NEEDS_RESUBMISSION'}" class="badge resubmit">Resubmit</span>
+                        </td>
+                        <td th:text="${#temporals.format(bd.submittedAt, 'dd MMM yyyy')}"></td>
+                        <td>
+                            <div class="action-buttons">
+                                <a th:href="@{/admin/bank-details/{id}(id=${bd.id})}" class="btn view">View</a>
+                                <th:block th:if="${bd.verificationStatus.toString() == 'PENDING'}">
+                                    <button class="btn verify" onclick="showVerifyModal([[${bd.id}]])">Verify</button>
+                                    <button class="btn reject" onclick="showRejectModal([[${bd.id}]])">Reject</button>
+                                </th:block>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <!-- VERIFY MODAL -->
+    <div id="verifyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('verifyModal')">&times;</span>
+            <div class="modal-header">Verify Bank Details</div>
+            
+            <form method="POST" action="/admin/bank-details/verify" onsubmit="return validateVerify()">
+                <input type="hidden" id="verifyId" name="id">
+                
+                <div class="form-group">
+                    <label>Admin Notes (Optional)</label>
+                    <textarea name="adminNotes" rows="3" placeholder="Add any notes about this verification..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Verify & Approve</button>
+                    <button type="button" onclick="closeModal('verifyModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- REJECT MODAL -->
+    <div id="rejectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('rejectModal')">&times;</span>
+            <div class="modal-header">Reject Bank Details</div>
+            
+            <form method="POST" action="/admin/bank-details/reject" onsubmit="return validateReject()">
+                <input type="hidden" id="rejectId" name="id">
+                
+                <div class="form-group">
+                    <label>Rejection Reason <span style="color: red;">*</span></label>
+                    <textarea name="rejectionReason" rows="3" placeholder="Explain why these details are rejected..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Admin Notes (Optional)</label>
+                    <textarea name="adminNotes" rows="2" placeholder="Add additional notes..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Reject & Notify Worker</button>
+                    <button type="button" onclick="closeModal('rejectModal')" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showVerifyModal(bankDetailsId) {
+            document.getElementById('verifyId').value = bankDetailsId;
+            document.getElementById('verifyModal').style.display = 'block';
+        }
+
+        function showRejectModal(bankDetailsId) {
+            document.getElementById('rejectId').value = bankDetailsId;
+            document.getElementById('rejectModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function validateVerify() {
+            const id = document.getElementById('verifyId').value;
+            if (!id) {
+                alert('Error: Bank details ID not found');
+                return false;
+            }
+            return confirm('Are you sure you want to verify this bank details?');
+        }
+
+        function validateReject() {
+            const id = document.getElementById('rejectId').value;
+            const reason = document.querySelector('#rejectModal textarea[name="rejectionReason"]').value;
+            
+            if (!id) {
+                alert('Error: Bank details ID not found');
+                return false;
+            }
+            if (!reason.trim()) {
+                alert('Please provide a reason for rejection');
+                return false;
+            }
+            return confirm('Are you sure you want to reject this bank details? The worker will be notified.');
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const verifyModal = document.getElementById('verifyModal');
+            const rejectModal = document.getElementById('rejectModal');
+            
+            if (event.target == verifyModal) {
+                verifyModal.style.display = 'none';
+            }
+            if (event.target == rejectModal) {
+                rejectModal.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

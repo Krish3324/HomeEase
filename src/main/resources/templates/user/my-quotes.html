@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Quotes | HomeEase</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F8FAFC; --surface: #fff; --border: #E2E8F0;
+            --accent: #F59E0B; --gold: #FBBF24; --text: #0F172A; --muted: #64748B;
+            --green: #10B981; --red: #EF4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); }
+        .page-wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+        .page-title {
+            font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 8px;
+        }
+        .page-sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
+            color: var(--muted); text-decoration: none; margin-bottom: 24px; transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+
+        /* REQUEST CARD */
+        .req-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            margin-bottom: 20px; overflow: hidden; transition: box-shadow 0.2s;
+        }
+        .req-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+        .req-header {
+            padding: 18px 22px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); background: #FAFBFC;
+        }
+        .req-cat {
+            font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .req-cat .icon { font-size: 22px; }
+        .req-badge {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+        .badge-OPEN { background: rgba(245,158,11,0.12); color: #D97706; border: 1px solid rgba(245,158,11,0.3); }
+        .badge-CLOSED { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.3); }
+
+        .req-body { padding: 20px 22px; }
+        .req-meta { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 14px; }
+        .req-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+        .req-meta-item strong { color: var(--text); }
+        .req-desc { font-size: 14px; color: var(--text); line-height: 1.6; background: #F8FAFC; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
+
+        /* QUOTES inside card */
+        .quotes-section { border-top: 1px solid var(--border); padding: 16px 22px; background: #FAFBFC; }
+        .quotes-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+        .no-quotes { font-size: 13px; color: var(--muted); font-style: italic; }
+        .quote-row {
+            display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+            background: white; border-radius: 10px; border: 1px solid var(--border);
+            margin-bottom: 8px; flex-wrap: wrap; gap: 10px;
+        }
+        .quote-worker { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .quote-worker .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; }
+        .quote-amount { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--green); }
+        .quote-msg { font-size: 12px; color: var(--muted); flex: 1; min-width: 180px; }
+        .quote-status { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .qs-PENDING { background: rgba(245,158,11,0.12); color: #D97706; }
+        .qs-ACCEPTED { background: rgba(16,185,129,0.12); color: #059669; }
+        .qs-REJECTED { background: rgba(239,68,68,0.12); color: #DC2626; }
+        .accept-btn {
+            padding: 7px 18px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10B981, #059669);
+            color: white; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .accept-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        .empty-page { text-align: center; padding: 80px 20px; }
+        .empty-page .icon { font-size: 64px; margin-bottom: 16px; opacity: 0.4; }
+        .empty-page h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .empty-page p { color: var(--muted); font-size: 14px; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 9999; display: none; animation: slideUp 0.3s ease; border: 1px solid; }
+        .toast.success { background: #f0fdf4; color: #059669; border-color: rgba(16,185,129,0.4); }
+        .toast.error { background: #fef2f2; color: #DC2626; border-color: rgba(239,68,68,0.4); }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="page-wrap">
+    <a href="/user/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    <div class="page-title">📩 My Quote Requests</div>
+    <div class="page-sub">Track all your broadcast service requests and review quotes from workers</div>
+
+    <!-- Empty state -->
+    <div class="empty-page" th:if="${requests == null or requests.empty}">
+        <div class="icon">📭</div>
+        <h3>No Requests Yet</h3>
+        <p>You haven't submitted any quote requests. Go to a service and click "Request Quotes"!</p>
+    </div>
+
+    <div th:each="req : ${requests}" class="req-card">
+        <div class="req-header">
+            <div class="req-cat">
+                <span class="icon">🔧</span>
+                <div>
+                    <div th:text="${req.category}">Category</div>
+                    <div style="font-size:12px;font-weight:400;color:#64748B;" th:text="'Sent to ' + ${req.notifiedWorkers.size()} + ' workers · ' + ${#temporals.format(req.createdAt, 'dd MMM yyyy')}"></div>
+                </div>
+            </div>
+            <span class="req-badge" th:classappend="'badge-' + ${req.status}" th:text="${req.status}">OPEN</span>
+        </div>
+
+        <div class="req-body">
+            <div class="req-meta">
+                <div class="req-meta-item"><i class="fas fa-map-pin"></i> Pincode: <strong th:text="${req.pincode}">-</strong></div>
+                <div class="req-meta-item"><i class="fas fa-bolt"></i> Urgency: <strong th:text="${req.urgency}">NORMAL</strong></div>
+                <div class="req-meta-item" th:if="${req.budget != null}"><i class="fas fa-wallet"></i> Budget: <strong th:text="'₹' + ${req.budget}">-</strong></div>
+            </div>
+            <div class="req-desc" th:text="${req.problemDescription}">Description</div>
+        </div>
+
+        <div class="quotes-section">
+            <div th:if="${req.status.name() == 'OPEN'}" style="color:var(--accent); font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-broadcast-tower"></i> Broadcasting to nearby workers...
+            </div>
+            <div th:if="${req.status.name() == 'CLOSED'}" style="color:var(--green); font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-check-circle"></i> A worker has accepted this request! Check your "My Bookings" page for details.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast ' + type; t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+</script>
+<meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+<meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
+</body>
+</html>

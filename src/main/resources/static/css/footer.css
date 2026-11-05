@@ -1,0 +1,107 @@
+/* ================================================================
+   FOOTER — GLASSY THEME
+   ================================================================ */
+
+.he-footer {
+  background: var(--black);
+  color: var(--white);
+  padding: 70px 8% 36px;
+  margin-top: 80px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.he-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 50px;
+  margin-bottom: 50px;
+}
+
+.he-footer .brand-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--yellow);
+  margin-bottom: 14px;
+}
+
+.he-footer .brand-desc {
+  color: #bbbbbb;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.he-footer h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+
+.he-footer ul {
+  list-style: none;
+}
+
+.he-footer ul li {
+  margin-bottom: 10px;
+}
+
+.he-footer ul a {
+  color: #aaaaaa;
+  font-size: 15px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-left: -8px;
+  display: inline-block;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+
+.he-footer ul a:hover {
+  color: var(--white);
+  background: var(--yellow-glow);
+  backdrop-filter: blur(10px);
+  border-color: var(--yellow-border);
+  padding-left: 16px;
+}
+
+.he-footer .contact-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #aaaaaa;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.he-footer-bottom {
+  text-align: center;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+  color: #777;
+}
+
+.he-footer-bottom span {
+  color: var(--yellow);
+  font-weight: 700;
+}
+
+/* Responsive Footer */
+@media (max-width: 900px) {
+  .he-footer {
+    padding: 50px 5% 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .he-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .he-footer .contact-line {
+    justify-content: center;
+  }
+  .he-footer {
+     text-align: center;
+  }
+}

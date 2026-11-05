@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title th:text="${category} + ' Services | HomeEase'">Active Services | HomeEase</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/css/user-navbar.css">
+<link rel="stylesheet" href="/css/footer.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+body { font-family: 'Inter', sans-serif; background: #f9f6ec; margin: 0; padding: 0; color: #1f1f1f; }
+.header { background: white; padding: 15px 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+.header h2 { margin: 0; color: #b58d09; font-family: 'Inter', sans-serif; letter-spacing: 0.02em; }
+.header a { text-decoration: none; color: #333; font-weight: 600; font-family: 'Inter', sans-serif; }
+.container { max-width: 1200px; margin: 50px auto; padding: 20px; }
+h1 { text-align: center; margin-bottom: 24px; font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.03em; font-size: 2.6rem; color: #111; }
+#get-location-btn { display: block; margin: 0 auto 30px auto; padding: 14px 30px; background: #facc15; color: #111827; border: none; border-radius: 999px; font-weight: 800; cursor: pointer; transition: 0.3s; box-shadow: 0 12px 24px rgba(250,204,21,0.18); }
+#get-location-btn:hover { background: #d4a70f; }
+.worker-card { background: #fff; padding: 24px; border-radius: 24px; box-shadow: 0 18px 45px rgba(0,0,0,0.08); margin-bottom: 22px; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.worker-card:hover { transform: translateY(-2px); box-shadow: 0 22px 55px rgba(0,0,0,0.10); }
+.worker-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 16px; }
+.worker-name { font-size: 1.2rem; font-weight: 800; color: #111; }
+.worker-meta { margin-top: 6px; color: #606060; font-size: 0.95rem; line-height: 1.6; }
+.worker-price { color: #111; font-weight: 800; font-size: 0.97rem; background: #ffefb5; padding: 10px 16px; border-radius: 999px; white-space: nowrap; }
+.worker-bio { margin: 0; color: #4f4f4f; line-height: 1.8; font-size: 0.98rem; }
+.profile-box { margin-top: 22px; display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 20px; border-radius: 20px; background: #fff9df; border: 1px solid #f6e2a8; }
+.profile-box-title { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #111; }
+.profile-box-text { color: #5e5e5e; font-size: 0.96rem; line-height: 1.7; }
+.profile-link { display: inline-flex; align-items: center; justify-content: center; padding: 12px 22px; background: #facc15; color: #111; font-weight: 700; border-radius: 999px; text-decoration: none; transition: background 0.25s ease; }
+.profile-link:hover { background: #e0b308; }
+.footer { margin-top: 60px; padding: 20px; background: #fff; text-align: center; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); }
+.footer p { margin: 0; color: #777; }
+.empty-state { text-align: center; padding: 60px 40px; background: linear-gradient(135deg, #fdf8ee 0%, #fff9df 100%); border-radius: 24px; border: 2px dashed #c9a84c; margin: 30px 0; }
+.empty-state-icon { font-size: 3.5rem; margin-bottom: 16px; }
+.empty-state-title { font-size: 1.8rem; font-weight: 800; color: #1f1f1f; margin-bottom: 12px; }
+.empty-state-desc { font-size: 1rem; color: #606060; line-height: 1.6; margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+.empty-state-cta { display: inline-flex; align-items: center; justify-content: center; padding: 16px 32px; background: #c9a84c; color: white; font-weight: 800; border-radius: 999px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 12px 28px rgba(201, 168, 76, 0.28); }
+.empty-state-cta:hover { background: #b59738; transform: translateY(-2px); box-shadow: 0 16px 36px rgba(201, 168, 76, 0.36); }
+.empty-state-subtext { font-size: 0.9rem; color: #999; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div th:replace="common/user-navbar :: userNavbar"></div>
+
+<div class="container">
+    <h1>Workers for <span th:text="${category}"></span></h1>
+
+    <button id="get-location-btn">Use My Location</button>
+
+    <div id="workers-container">
+        <div th:each="worker : ${workers}" class="worker-card">
+            <div class="worker-top">
+                <div>
+                    <div class="worker-name">👤 <span th:text="${worker.name}"></span></div>
+                    <div class="worker-meta">📍 <span th:text="${worker.city}"></span> · ⭐ <span th:text="${worker.rating}"></span></div>
+                </div>
+                <div class="worker-price">₹<span th:text="${worker.minCharge}"></span> - ₹<span th:text="${worker.maxCharge}"></span></div>
+            </div>
+            <p class="worker-bio">📝 <span th:text="${worker.bio}"></span></p>
+
+            <div class="profile-box">
+                <div>
+                    <div class="profile-box-title">Worker profile</div>
+                    <div class="profile-box-text">Open this card to see full details, ratings and booking options.</div>
+                </div>
+                <a class="profile-link" th:href="@{/worker-profile/{id}(id=${worker.id})}">Open Profile</a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(workers)}" class="empty-state">
+            <div class="empty-state-icon">🔧</div>
+            <div class="empty-state-title">No Workers Available Yet</div>
+            <div class="empty-state-desc">
+                There are currently no <span th:text="${category}"></span> workers in your area. Be the first to offer your services and start earning!
+            </div>
+            <a href="/register-worker" class="empty-state-cta">
+                ✨ Apply as a <span th:text="${category}"></span> Worker
+            </a>
+            <div class="empty-state-subtext">Join thousands of verified workers and build your career with HomeEase</div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+
+const category = /*[[${category}]]*/ "";
+
+document.getElementById('get-location-btn').addEventListener('click', function() {
+
+    if(navigator.geolocation){
+
+        navigator.geolocation.getCurrentPosition(function(position){
+
+            fetch('/user/active-services/filter-by-location', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    category: category
+                })
+            })
+            .then(response => response.json())
+            .then(workers => {
+
+                const container = document.getElementById('workers-container');
+                container.innerHTML = '';
+
+                if(workers.length === 0){
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔧</div>
+                            <div class="empty-state-title">No Workers Nearby</div>
+                            <div class="empty-state-desc">
+                                We couldn't find any <span>${category}</span> workers within 50 KM of your location. Be the first to offer your services in your area!
+                            </div>
+                            <a href="/register-worker" class="empty-state-cta">
+                                ✨ Apply as a ${category} Worker
+                            </a>
+                            <div class="empty-state-subtext">Join thousands of verified workers and build your career with HomeEase</div>
+                        </div>`;
+                } else {
+                    workers.forEach(worker => {
+                        container.innerHTML += `
+                        <div class="worker-card">
+                            <div class="worker-top">
+                                <div>
+                                    <div class="worker-name">👤 <span>${worker.name}</span></div>
+                                    <div class="worker-meta">📍 ${worker.city} · ⭐ ${worker.rating ?? 'N/A'}</div>
+                                </div>
+                                <div class="worker-price">₹${worker.minCharge} - ₹${worker.maxCharge}</div>
+                            </div>
+                            <p class="worker-bio">📝 ${worker.bio ?? ''}</p>
+                            <div class="profile-box">
+                                <div>
+                                    <div class="profile-box-title">Worker profile</div>
+                                    <div class="profile-box-text">Open this card to see full details, ratings and booking options.</div>
+                                </div>
+                                <a class="profile-link" href="/worker-profile/${worker.id}">Open Profile</a>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+            });
+
+        }, function(error){
+            alert("Location access denied!");
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+
+    } else {
+        alert('Geolocation not supported by your browser');
+    }
+
+});
+</script>
+<div th:replace="common/footer :: footer"></div>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

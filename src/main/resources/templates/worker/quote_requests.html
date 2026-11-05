@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Requests | HomeEase Worker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F8FAFC; --surface: #fff; --surface2: #F1F5F9; --border: #E2E8F0;
+            --accent: #F59E0B; --gold: #FBBF24; --text: #0F172A; --muted: #64748B;
+            --green: #10B981; --red: #EF4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); display: flex; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar { width: 260px; min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
+        .brand-row { display: flex; align-items: center; gap: 12px; }
+        .brand-icon { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; background: linear-gradient(135deg, var(--gold), var(--accent)); color: #111; font-size: 16px; font-weight: 800; }
+        .sidebar-logo h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin: 0; }
+        .sidebar-logo p { font-size: 11px; color: var(--muted); margin: 4px 0 0; text-transform: uppercase; letter-spacing: 1.5px; }
+        .sidebar-nav { padding: 10px 12px; flex: 1; }
+        .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); padding: 16px 12px 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--muted); text-decoration: none; transition: all 0.2s; margin-bottom: 2px; }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: rgba(245,197,24,0.12); color: var(--accent); border: 1px solid rgba(245,197,24,0.2); }
+
+        .main { margin-left: 260px; flex: 1; }
+        .topbar { padding: 24px 34px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); }
+        .topbar-title { font-size: 26px; font-weight: 700; }
+        .content { padding: 32px; }
+
+        /* CARDS */
+        .req-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+            margin-bottom: 20px; overflow: hidden; transition: box-shadow 0.2s;
+        }
+        .req-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+        .req-header {
+            padding: 18px 22px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); background: #FAFBFC;
+        }
+        .req-cat { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .urgency-chip { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .urgency-NORMAL { background: rgba(100,116,139,0.1); color: #475569; }
+        .urgency-URGENT { background: rgba(239,68,68,0.12); color: #DC2626; border: 1px solid rgba(239,68,68,0.3); }
+
+        .req-body { padding: 18px 22px; }
+        .req-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
+        .req-meta-item { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+        .req-meta-item strong { color: var(--text); }
+        .req-desc { font-size: 14px; line-height: 1.6; background: #F8FAFC; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
+
+        .action-btns { display: flex; gap: 10px; }
+        .accept-btn {
+            padding: 10px 22px; border-radius: 10px; background: linear-gradient(135deg, var(--green), #059669);
+            color: white; border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
+            transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+        }
+        .accept-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(16,185,129,0.3); }
+        
+        .decline-btn {
+            padding: 10px 22px; border-radius: 10px; background: #F1F5F9; color: var(--muted); border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
+            transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+        }
+        .decline-btn:hover { background: #E2E8F0; color: var(--text); }
+
+        .already-quoted { font-size: 13px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 9000; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: white; border-radius: 20px; padding: 32px; width: 100%; max-width: 440px; box-shadow: 0 24px 60px rgba(0,0,0,0.2); animation: pop 0.3s ease; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
+        .field input, .field textarea {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+            font-size: 14px; font-family: 'Inter', sans-serif; outline: none; background: #F8FAFC;
+            transition: border-color 0.2s;
+        }
+        .field input:focus, .field textarea:focus { border-color: var(--accent); background: #fff; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; background: #F1F5F9; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-submit { flex: 2; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #D97706); color: white; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { opacity: 0.9; }
+
+        .empty-page { text-align: center; padding: 80px 20px; color: var(--muted); }
+        .empty-page .icon { font-size: 60px; margin-bottom: 16px; opacity: 0.4; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 9999; display: none; animation: slideUp 0.3s ease; border: 1px solid; }
+        .toast.success { background: #f0fdf4; color: #059669; border-color: rgba(16,185,129,0.4); }
+        .toast.error { background: #fef2f2; color: #DC2626; border-color: rgba(239,68,68,0.4); }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="brand-row">
+            <span class="brand-icon">HE</span>
+            <div><h1>HomeEase</h1><p>Worker Portal</p></div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <a href="/worker/dashboard" class="nav-item"><span>🏠</span> Dashboard</a>
+        <a href="/worker/profile" class="nav-item"><span>👤</span> Profile</a>
+        <a href="/worker/earnings" class="nav-item"><span>💰</span> Earnings</a>
+        <a href="/worker/quote-requests" class="nav-item active"><span>📩</span> Quote Requests</a>
+        <a href="/worker/settings" class="nav-item"><span>⚙️</span> Settings</a>
+        <form action="/logout" method="post" style="margin: 2px 0;">
+            <button type="submit" class="nav-item" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:#64748B;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;transition:all 0.2s;"><span>⇤</span> Logout</button>
+        </form>
+    </nav>
+</aside>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-title">📩 Service Quote Requests</div>
+    </div>
+    <div class="content">
+        <div class="empty-page" th:if="${requests == null or requests.empty}">
+            <div class="icon">📭</div>
+            <h3 style="font-family:'Syne',sans-serif;font-size:20px;margin-bottom:8px;">No Requests Yet</h3>
+            <p>When users request quotes in your service category, they'll appear here.</p>
+        </div>
+
+        <div th:each="req : ${requests}" class="req-card">
+            <div class="req-header">
+                <div class="req-cat">
+                    <span>🔧</span>
+                    <div>
+                        <div th:text="${req.category}">Category</div>
+                        <div style="font-size:12px;color:#64748B;font-weight:400;" th:text="${#temporals.format(req.createdAt, 'dd MMM yyyy, hh:mm a')}"></div>
+                    </div>
+                </div>
+                <span class="urgency-chip" th:classappend="'urgency-' + ${req.urgency}" th:text="${req.urgency}">NORMAL</span>
+            </div>
+
+            <div class="req-body">
+                <div class="req-meta">
+                    <div class="req-meta-item"><i class="fas fa-map-pin"></i> Pincode: <strong th:text="${req.pincode}">-</strong></div>
+                    <div class="req-meta-item" th:if="${req.budget != null}"><i class="fas fa-wallet"></i> Budget: <strong th:text="'₹' + ${req.budget}">-</strong></div>
+                </div>
+                <div class="req-desc" th:text="${req.problemDescription}">Problem description</div>
+
+                <div th:if="${req.status.name() == 'CLOSED'}" class="already-quoted">
+                    <i class="fas fa-check-circle"></i> This request has been accepted by someone else.
+                </div>
+                <div th:if="${req.status.name() == 'OPEN'}" class="action-btns">
+                    <button class="accept-btn" th:onclick="'acceptRequest(' + ${req.id} + ')'">
+                        <i class="fas fa-check"></i> Accept Booking
+                    </button>
+                    <button class="decline-btn" th:onclick="'declineRequest(' + ${req.id} + ')'">
+                        <i class="fas fa-times"></i> Decline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="toast" id="toast"></div>
+<meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+<meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
+
+<script>
+    async function acceptRequest(requestId) {
+        if (!confirm('Are you sure you want to accept this booking?')) return;
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+        try {
+            const resp = await fetch('/worker/accept-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
+                body: `requestId=${requestId}`
+            });
+            const data = await resp.json();
+            showToast(data.message, data.status === 'success' ? 'success' : 'error');
+            if (data.status === 'success') { setTimeout(() => location.reload(), 1500); }
+        } catch (e) { showToast('Network error.', 'error'); }
+    }
+
+    async function declineRequest(requestId) {
+        if (!confirm('Are you sure you want to decline this request?')) return;
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+        try {
+            const resp = await fetch('/worker/decline-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
+                body: `requestId=${requestId}`
+            });
+            const data = await resp.json();
+            showToast(data.message, data.status === 'success' ? 'success' : 'error');
+            if (data.status === 'success') { setTimeout(() => location.reload(), 1000); }
+        } catch (e) { showToast('Network error.', 'error'); }
+    }
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast ' + type; t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+    document.getElementById('quoteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
+</body>
+</html>

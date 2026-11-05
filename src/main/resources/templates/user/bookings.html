@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Bookings | HomeEase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fb; }
+
+        .page-header { background: white; padding: 28px 40px; border-bottom: 1px solid #eee; }
+        .page-header h1 { font-size: 24px; font-weight: 700; color: #1c1c1c; }
+        .page-header p { font-size: 14px; color: #888; margin-top: 4px; }
+
+        .container { max-width: 1000px; margin: 36px auto; padding: 0 24px; }
+
+        .empty-state { text-align: center; padding: 80px 20px; background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+        .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 20px; color: #333; margin-bottom: 8px; }
+        .empty-state p { color: #888; font-size: 14px; margin-bottom: 24px; }
+        .btn-primary { display: inline-block; padding: 12px 28px; background: #c9a84c; color: white; border-radius: 10px; text-decoration: none; font-weight: 700; }
+
+        .booking-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 16px; overflow: hidden; transition: box-shadow 0.2s; }
+        .booking-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.09); }
+
+        .booking-card-top { display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #f5f5f5; }
+        .booking-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #e8cc7a, #c9a84c); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: white; flex-shrink: 0; }
+        .booking-worker-name { font-size: 16px; font-weight: 700; color: #1c1c1c; }
+        .booking-worker-meta { font-size: 13px; color: #888; margin-top: 2px; }
+
+        .booking-status { margin-left: auto; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .status-PENDING   { background: #fff8e1; color: #f59e0b; border: 1px solid #fde68a; }
+        .status-CONFIRMED { background: #e8f5e9; color: #22c55e; border: 1px solid #bbf7d0; }
+        .status-COMPLETED { background: #e3f2fd; color: #3b82f6; border: 1px solid #bfdbfe; }
+        .status-CANCELLED { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+
+        .booking-card-body { padding: 16px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .booking-detail-item label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; margin-bottom: 4px; }
+        .booking-detail-item span { font-size: 13px; font-weight: 600; color: #333; }
+
+        .booking-card-footer { padding: 14px 24px; background: #fafafa; border-top: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+        .payment-amount-info .amount { font-size: 20px; font-weight: 800; color: #1c1c1c; }
+        .payment-amount-info .range { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+        .pay-now-btn { background: linear-gradient(135deg, #c9a84c, #e8cc7a); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+        .pay-now-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,0.35); }
+
+        .paid-badge { display: inline-flex; align-items: center; gap: 6px; background: #e8f5e9; color: #22c55e; border: 1px solid #bbf7d0; padding: 7px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; }
+        .cod-badge  { display: inline-flex; align-items: center; gap: 6px; background: #fff8e1; color: #f59e0b; border: 1px solid #fde68a; padding: 7px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; }
+
+        .rate-btn { background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: inherit; }
+        .rate-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ══════════════════════════════════════════
+           PAYMENT MODAL OVERLAY
+        ══════════════════════════════════════════ */
+        .pay-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: none; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .pay-overlay.open { display: flex; }
+
+        .pay-modal {
+            background: white; border-radius: 24px;
+            width: 100%; max-width: 480px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.25);
+            animation: popIn 0.3s cubic-bezier(.22,.68,0,1.2);
+            position: relative; overflow: hidden;
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.88) translateY(24px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* Modal header */
+        .pay-modal-header {
+            background: linear-gradient(135deg, #1c1c1c 0%, #2d2d2d 100%);
+            padding: 24px 24px 20px;
+            position: relative;
+        }
+
+        .pay-modal-close {
+            position: absolute; top: 14px; right: 16px;
+            background: rgba(255,255,255,0.12); border: none;
+            color: rgba(255,255,255,0.7); width: 28px; height: 28px;
+            border-radius: 50%; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .pay-modal-close:hover { background: rgba(255,255,255,0.22); color: white; }
+
+        .pay-modal-header h2 { font-size: 18px; font-weight: 700; color: white; margin-bottom: 4px; }
+        .pay-modal-header p  { font-size: 13px; color: rgba(255,255,255,0.55); }
+
+        .pay-amount-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.35);
+            color: #e8cc7a; padding: 6px 14px; border-radius: 20px;
+            font-size: 15px; font-weight: 800; margin-top: 14px;
+        }
+
+        /* Modal body */
+        .pay-modal-body { padding: 20px 24px 24px; }
+
+        .section-title {
+            font-size: 11px; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; color: #aaa; margin-bottom: 12px;
+        }
+
+        /* ── PAYMENT MODE CARDS ── */
+        .mode-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+        .mode-card {
+            border: 2px solid #eee; border-radius: 14px;
+            padding: 14px 16px; cursor: pointer;
+            transition: all 0.2s; position: relative;
+            background: #fafafa;
+        }
+        .mode-card:hover { border-color: #c9a84c; background: #fffdf5; }
+        .mode-card.selected {
+            border-color: #c9a84c;
+            background: linear-gradient(135deg, #fffdf5, #fffbeb);
+            box-shadow: 0 4px 16px rgba(201,168,76,0.15);
+        }
+
+        .mode-card-top { display: flex; align-items: center; gap: 12px; }
+
+        .mode-radio {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid #ddd; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .mode-card.selected .mode-radio {
+            border-color: #c9a84c;
+            background: #c9a84c;
+        }
+        .mode-radio::after {
+            content: ''; width: 8px; height: 8px;
+            border-radius: 50%; background: white;
+            display: none;
+        }
+        .mode-card.selected .mode-radio::after { display: block; }
+
+        .mode-icon-wrap {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .icon-card { background: #e3f2fd; }
+        .icon-upi  { background: #e8f5e9; }
+        .icon-netbanking { background: #e8f0ff; }
+        .icon-cod  { background: #fff8e1; }
+
+        .mode-info { flex: 1; }
+        .mode-name { font-size: 15px; font-weight: 700; color: #1c1c1c; }
+        .mode-desc { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .mode-badge {
+            font-size: 10px; font-weight: 700; padding: 3px 8px;
+            border-radius: 20px; margin-left: auto; white-space: nowrap;
+        }
+        .badge-instant { background: #e3f2fd; color: #1976d2; }
+        .badge-secure  { background: #e8f5e9; color: #2e7d32; }
+        .badge-easy    { background: #fff8e1; color: #f57f17; }
+
+        /* ── UPI SUB-OPTIONS ── */
+        .upi-apps {
+            display: none; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #f0ead0;
+        }
+        .mode-card.selected .upi-apps { display: block; }
+
+        .upi-app-label { font-size: 11px; color: #aaa; font-weight: 600; margin-bottom: 8px; }
+
+        .upi-app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+        .upi-app-btn {
+            border: 1.5px solid #eee; border-radius: 10px;
+            padding: 8px 4px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            transition: all 0.2s; background: white;
+            font-family: inherit;
+        }
+        .upi-app-btn:hover, .upi-app-btn.active {
+            border-color: #c9a84c; background: #fffdf5;
+        }
+        .upi-app-btn span:first-child { font-size: 22px; }
+        .upi-app-btn span:last-child  { font-size: 10px; font-weight: 600; color: #555; }
+
+        .upi-id-input {
+            margin-top: 10px; display: none;
+        }
+        .upi-id-input input {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #eee;
+            border-radius: 10px; font-size: 13px; font-family: inherit;
+            outline: none; transition: border-color 0.2s;
+        }
+        .upi-id-input input:focus { border-color: #c9a84c; }
+        .upi-id-input input::placeholder { color: #bbb; }
+
+        /* ── CARD INPUT SECTION ── */
+        .card-inputs {
+            display: none; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #f0ead0;
+        }
+        .mode-card.selected .card-inputs { display: block; }
+
+        .card-input-group { margin-bottom: 10px; }
+        .card-input-group label { display: block; font-size: 11px; font-weight: 600; color: #888; margin-bottom: 5px; }
+        .card-input-group input {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #eee;
+            border-radius: 10px; font-size: 13px; font-family: inherit;
+            outline: none; transition: border-color 0.2s;
+        }
+        .card-input-group input:focus { border-color: #c9a84c; }
+        .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .test-card-hint {
+            background: #e8f5e9; border: 1px solid #bbf7d0;
+            border-radius: 8px; padding: 8px 10px; font-size: 11px;
+            color: #2e7d32; margin-top: 8px;
+        }
+
+        /* ── COD DETAILS ── */
+        .cod-details {
+            display: none; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #f0ead0;
+        }
+        .mode-card.selected .cod-details { display: block; }
+
+        .cod-info-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 13px; color: #555; padding: 6px 0;
+        }
+        .cod-info-row .cod-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #f59e0b; flex-shrink: 0; margin-top: 5px;
+        }
+
+        /* ── DIVIDER ── */
+        .modal-divider { border: none; border-top: 1px solid #f0f0f0; margin: 16px 0; }
+
+        /* ── ORDER SUMMARY ── */
+        .order-summary { background: #fafafa; border-radius: 12px; padding: 14px; margin-bottom: 20px; }
+        .summary-row {
+            display: flex; justify-content: space-between;
+            font-size: 13px; color: #666; padding: 4px 0;
+        }
+        .summary-row.total {
+            border-top: 1px solid #eee; margin-top: 8px; padding-top: 10px;
+            font-weight: 800; font-size: 15px; color: #1c1c1c;
+        }
+
+        /* ── PAY BUTTON ── */
+        .pay-submit-btn {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #c9a84c, #e8cc7a);
+            color: white; border: none; border-radius: 14px;
+            font-size: 16px; font-weight: 800; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .pay-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.4); }
+        .pay-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .secure-note {
+            text-align: center; font-size: 11px; color: #bbb; margin-top: 10px;
+        }
+
+        /* ── SUCCESS STATE ── */
+        .pay-success-state {
+            text-align: center; padding: 40px 24px;
+            display: none;
+        }
+        .pay-success-state .s-icon { font-size: 64px; margin-bottom: 16px; }
+        .pay-success-state h3 { font-size: 22px; font-weight: 800; color: #22c55e; margin-bottom: 8px; }
+        .pay-success-state p { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.6; }
+
+        .done-btn {
+            background: #1c1c1c; color: white; border: none;
+            padding: 12px 32px; border-radius: 12px; font-size: 15px;
+            font-weight: 700; cursor: pointer; font-family: inherit;
+            transition: background 0.2s;
+        }
+        .done-btn:hover { background: #333; }
+
+        @media (max-width: 640px) {
+            .booking-card-body { grid-template-columns: 1fr 1fr; }
+            .page-header { padding: 20px; }
+            .booking-card-footer { flex-direction: column; align-items: flex-start; }
+            .upi-app-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+
+<body data-chatbot-role="USER">
+
+    <div th:replace="common/user-navbar :: userNavbar"></div>
+
+    <div class="page-header">
+        <p>Track all your service requests and their current status</p>
+    </div>
+
+    <!-- SUCCESS MSG -->
+    <div th:if="${successMsg}" class="container" style="margin-top: 20px; margin-bottom: -20px;">
+        <div style="background: #e8f5e9; color: #2e7d32; padding: 16px; border-radius: 12px; border: 1px solid #bbf7d0; font-weight: 600;">
+            ✅ <span th:text="${successMsg}">Success</span>
+        </div>
+    </div>
+    
+    <!-- ERROR MSG -->
+    <div th:if="${error}" class="container" style="margin-top: 20px; margin-bottom: -20px;">
+        <div style="background: #fef2f2; color: #ef4444; padding: 16px; border-radius: 12px; border: 1px solid #fecaca; font-weight: 600;">
+            ❌ <span th:text="${error}">Error</span>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Empty state -->
+        <div class="empty-state" th:if="${#lists.isEmpty(bookings)}">
+            <div class="icon">📋</div>
+            <h3>No bookings yet</h3>
+            <p>You haven't booked any services yet. Find a worker and book your first service!</p>
+            <a href="/user/active-services" class="btn-primary">Browse Services</a>
+        </div>
+
+        <!-- Booking cards -->
+        <div th:each="booking : ${bookings}" class="booking-card">
+
+            <div class="booking-card-top">
+                <div class="booking-avatar"
+                     th:text="${booking.worker.name.substring(0,1).toUpperCase()}">W</div>
+                <div>
+                    <div class="booking-worker-name" th:text="${booking.worker.name}">Worker</div>
+                    <div class="booking-worker-meta"
+                         th:text="${booking.worker.category} + ' • ' + ${booking.worker.city}">
+                    </div>
+                </div>
+                <span class="booking-status"
+                      th:classappend="'status-' + ${booking.status}"
+                      th:text="${booking.status}">PENDING</span>
+            </div>
+
+            <div class="booking-card-body">
+                <div class="booking-detail-item">
+                    <label>Date</label>
+                    <span th:text="${booking.bookingDate}">—</span>
+                </div>
+                <div class="booking-detail-item">
+                    <label>Time</label>
+                    <span th:text="${booking.bookingTime}">—</span>
+                </div>
+                <div class="booking-detail-item">
+                    <label>Location</label>
+                    <span th:text="${booking.city != null ? booking.city : booking.address}">—</span>
+                </div>
+                <div class="booking-detail-item">
+                    <label>Booked On</label>
+                    <span th:text="${booking.createdAt != null ? #temporals.format(booking.createdAt, 'dd MMM yyyy') : '—'}">—</span>
+                </div>
+            </div>
+
+            <!-- Payment footer — IN_PROGRESS or COMPLETED bookings -->
+            <div class="booking-card-footer"
+                 th:if="${booking.status.name() == 'IN_PROGRESS' or booking.status.name() == 'COMPLETED'}">
+
+                <div class="payment-amount-info">
+                    <div class="amount">
+                        ₹<span th:text="${booking.discountedAmount ?: ((booking.worker.minCharge ?: 0) + (booking.worker.maxCharge ?: 0)) / 2}">0</span>
+                        <span th:if="${booking.appliedDiscount != null and booking.appliedDiscount > 0}" style="font-size: 12px; color: #22c55e; font-weight: 700; margin-left: 8px;">(20% OFF)</span>
+                    </div>
+                    <div class="range" th:if="${booking.appliedDiscount == null or booking.appliedDiscount == 0}">
+                        Avg of ₹<span th:text="${booking.worker.minCharge ?: 0}">0</span>
+                        – ₹<span th:text="${booking.worker.maxCharge ?: 0}">0</span>
+                    </div>
+                    <div class="range" th:if="${booking.appliedDiscount != null and booking.appliedDiscount > 0}">
+                        <span style="text-decoration: line-through; color: #ef4444;">₹<span th:text="${booking.originalAmount ?: ((booking.worker.minCharge ?: 0) + (booking.worker.maxCharge ?: 0)) / 2}">0</span></span>
+                        <span style="color: #22c55e; font-weight: 700; margin-left: 4px;">Rebooking Discount Applied</span>
+                    </div>
+                </div>
+
+                <!-- IN_PROGRESS with proof or COMPLETED and unpaid → Pay Now + Chat -->
+                <div th:if="${!paidBookingIds.contains(booking.id) and (booking.status.name() == 'COMPLETED' or !#lists.isEmpty(booking.workProofs))}"
+                     style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    <button class="pay-now-btn"
+                            th:onclick="openPayModal([[${booking.id}]], [[${booking.discountedAmount ?: ((booking.worker.minCharge ?: 0) + (booking.worker.maxCharge ?: 0)) / 2}]], [[${booking.worker.name}]], [[${booking.worker.minCharge ?: 0}]], [[${booking.worker.maxCharge ?: 0}]])">
+                        💳 Pay Now
+                    </button>
+                    <a th:href="@{/user/chat(bookingId=${booking.id})}" class="pay-now-btn" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); text-decoration: none;">
+                        💬 Chat
+                    </a>
+                    <a th:if="${booking.status.name() == 'COMPLETED' and !ratedBookingIds.contains(booking.id)}" th:href="@{/user/rate-worker(bookingId=${booking.id})}" class="rate-btn">
+                        ⭐ Rate Worker
+                    </a>
+                    <span th:if="${booking.status.name() == 'COMPLETED' and ratedBookingIds.contains(booking.id)}" style="color: #6366f1; font-weight: 700; font-size: 13px;">
+                        🌟 Rated
+                    </span>
+                </div>
+
+                <div th:if="${paidBookingIds.contains(booking.id)}"
+                     style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <span class="paid-badge">✅ Payment Received</span>
+                    <a th:href="@{/user/chat(bookingId=${booking.id})}" class="pay-now-btn" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); text-decoration: none;">
+                        💬 Chat
+                    </a>
+                    <a th:if="${booking.status.name() == 'COMPLETED' and !ratedBookingIds.contains(booking.id)}" th:href="@{/user/rate-worker(bookingId=${booking.id})}" class="rate-btn">
+                        ⭐ Rate Worker
+                    </a>
+                    <span th:if="${booking.status.name() == 'COMPLETED' and ratedBookingIds.contains(booking.id)}" style="color: #6366f1; font-weight: 700; font-size: 13px;">
+                        🌟 Rated
+                    </span>
+                </div>
+
+                <div th:if="${booking.status.name() == 'IN_PROGRESS' and #lists.isEmpty(booking.workProofs)}"
+                     style="color:#d97706; font-size:13px; font-weight:700;">
+                    ⏳ Waiting for work proof from worker before payment is available.
+                </div>
+
+                <div th:if="${booking.status.name() == 'IN_PROGRESS' and !#lists.isEmpty(booking.workProofs)}"
+                     style="display:flex; gap: 10px; flex-wrap: wrap; align-items:center; margin-top: 8px;">
+                    <span class="proof-badge">Proof uploaded</span>
+                    <span th:if="${!paidBookingIds.contains(booking.id)}" style="color:#16a34a; font-size:13px; font-weight:700;">
+                         You can complete payment now.
+                    </span>
+                </div>
+
+                <!-- REPORT BUTTON -->
+                <button class="he-btn he-btn-outline" style="padding: 8px 16px; font-size:12px; border: 1.5px solid #ff4d4d; color: #ff4d4d; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 700;"
+                        th:onclick="openReportModal([[${booking.worker.email}]], 'WORKER', [[${booking.id}]], [[${booking.worker.name}]])">
+                    ⚠️ Report Issue
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PAYMENT MODAL
+    ══════════════════════════════════════════ -->
+    <div class="pay-overlay" id="payOverlay" onclick="handleOverlayClick(event)">
+        <div class="pay-modal" id="payModal">
+
+            <!-- HEADER -->
+            <div class="pay-modal-header">
+                <button class="pay-modal-close" onclick="closePayModal()">✕</button>
+                <h2>Complete Payment</h2>
+                <p id="modalWorkerLabel">Service by —</p>
+                <div class="pay-amount-chip">
+                    💰 ₹<span id="headerAmount">0</span>
+                </div>
+            </div>
+
+            <!-- DEFAULT BODY -->
+            <div class="pay-modal-body" id="payDefaultState">
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Booking #<span id="summaryBookingId">—</span></span>
+                        <span id="summaryWorker">—</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Charge range</span>
+                        <span>₹<span id="summaryMin">0</span> – ₹<span id="summaryMax">0</span></span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total (avg)</span>
+                        <span>₹<span id="summaryTotal">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Payment Mode Selection -->
+                <div class="section-title">Choose payment method</div>
+
+                <div class="mode-grid">
+
+                    <!-- ── CARD ── -->
+                    <div class="mode-card" id="mode-card" onclick="selectMode('card')">
+                        <div class="mode-card-top">
+                            <div class="mode-radio"></div>
+                            <div class="mode-icon-wrap icon-card">💳</div>
+                            <div class="mode-info">
+                                <div class="mode-name">Credit / Debit Card</div>
+                                <div class="mode-desc">Visa, Mastercard, RuPay</div>
+                            </div>
+                            <span class="mode-badge badge-instant">Instant</span>
+                        </div>
+                        <!-- Card input fields -->
+                        <div class="card-inputs">
+                            <div class="card-input-group">
+                                <label>Card Number</label>
+                                <input type="text" id="cardNumber" maxlength="19"
+                                       placeholder="1234 5678 9012 3456"
+                                       oninput="formatCardNumber(this)">
+                            </div>
+                            <div class="card-row">
+                                <div class="card-input-group">
+                                    <label>Expiry</label>
+                                    <input type="text" id="cardExpiry" maxlength="5"
+                                           placeholder="MM/YY" oninput="formatExpiry(this)">
+                                </div>
+                                <div class="card-input-group">
+                                    <label>CVV</label>
+                                    <input type="password" id="cardCvv" maxlength="3" placeholder="•••">
+                                </div>
+                            </div>
+                            <div class="card-input-group">
+                                <label>Name on Card</label>
+                                <input type="text" id="cardName" placeholder="Full name">
+                            </div>
+                            <div class="test-card-hint">
+                                🧪 Test: <strong>4111 1111 1111 1111</strong> · Any expiry · CVV 123 · OTP 1234
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── UPI ── -->
+                    <div class="mode-card" id="mode-upi" onclick="selectMode('upi')">
+                        <div class="mode-card-top">
+                            <div class="mode-radio"></div>
+                            <div class="mode-icon-wrap icon-upi">📱</div>
+                            <div class="mode-info">
+                                <div class="mode-name">UPI</div>
+                                <div class="mode-desc">Google Pay, PhonePe, Paytm & more</div>
+                            </div>
+                            <span class="mode-badge badge-secure">Secure</span>
+                        </div>
+                        <!-- UPI sub-options -->
+                        <div class="upi-apps">
+                            <div class="upi-app-label">Select UPI app or enter UPI ID</div>
+                            <div class="upi-app-grid">
+                                <button class="upi-app-btn" onclick="selectUpiApp('gpay', event)">
+                                    <span>🟢</span><span>GPay</span>
+                                </button>
+                                <button class="upi-app-btn" onclick="selectUpiApp('phonepe', event)">
+                                    <span>🟣</span><span>PhonePe</span>
+                                </button>
+                                <button class="upi-app-btn" onclick="selectUpiApp('paytm', event)">
+                                    <span>🔵</span><span>Paytm</span>
+                                </button>
+                                <button class="upi-app-btn" onclick="selectUpiApp('other', event)">
+                                    <span>⌨️</span><span>UPI ID</span>
+                                </button>
+                            </div>
+                            <div class="upi-id-input" id="upiIdInput">
+                                <input type="text" id="upiIdField"
+                                       placeholder="yourname@upi (e.g. success@razorpay for test)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── NET BANKING ── -->
+                    <div class="mode-card" id="mode-netbanking" onclick="selectMode('netbanking')">
+                        <div class="mode-card-top">
+                            <div class="mode-radio"></div>
+                            <div class="mode-icon-wrap icon-netbanking">🏦</div>
+                            <div class="mode-info">
+                                <div class="mode-name">Net Banking</div>
+                                <div class="mode-desc">Use your bank account with Razorpay</div>
+                            </div>
+                            <span class="mode-badge badge-instant">Instant</span>
+                        </div>
+                    </div>
+
+                    <!-- ── COD ── -->
+                    <div class="mode-card" id="mode-cod" onclick="selectMode('cod')">
+                        <div class="mode-card-top">
+                            <div class="mode-radio"></div>
+                            <div class="mode-icon-wrap icon-cod">💵</div>
+                            <div class="mode-info">
+                                <div class="mode-name">Cash on Delivery</div>
+                                <div class="mode-desc">Pay in cash when worker arrives</div>
+                            </div>
+                            <span class="mode-badge badge-easy">Easy</span>
+                        </div>
+                        <!-- COD info -->
+                        <div class="cod-details">
+                            <div class="cod-info-row">
+                                <div class="cod-dot"></div>
+                                <span>Keep exact cash of <strong>₹<span class="cod-amount">0</span></strong> ready when the worker arrives.</span>
+                            </div>
+                            <div class="cod-info-row">
+                                <div class="cod-dot"></div>
+                                <span>The worker will collect payment after completing the job.</span>
+                            </div>
+                            <div class="cod-info-row">
+                                <div class="cod-dot"></div>
+                                <span>You can still rate the worker after service completion.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Pay button -->
+                <button class="pay-submit-btn" id="paySubmitBtn"
+                        onclick="handlePayment()" disabled>
+                    <span id="payBtnIcon">🔒</span>
+                    <span id="payBtnText">Select a payment method</span>
+                </button>
+
+                <div class="secure-note">🔒 Payments secured by Razorpay · Test Mode</div>
+
+            </div>
+
+            <!-- SUCCESS STATE -->
+            <div class="pay-success-state" id="paySuccessState">
+                <div class="s-icon">🎉</div>
+                <h3 id="successTitle">Payment Successful!</h3>
+                <p id="successDesc">Your payment has been verified successfully. The worker has been notified.</p>
+                <button class="done-btn" onclick="closePayModal(); location.reload();">
+                    Done
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         REPORT MODAL
+    ══════════════════════════════════════════ -->
+    <div class="pay-overlay" id="reportOverlay" style="display:none; z-index: 10001;" onclick="if(event.target===this) closeReportModal()">
+        <div class="pay-modal" style="max-width: 550px;">
+            <div class="pay-modal-header" style="background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);">
+                <button class="pay-modal-close" onclick="closeReportModal()">✕</button>
+                <h2>Report an Issue</h2>
+                <p>Tell us what went wrong with your service.</p>
+            </div>
+            
+            <div class="pay-modal-body">
+                <form th:action="@{/user/submit-report}" method="post">
+                    <input type="hidden" name="targetEmail" id="reportTargetEmail">
+                    <input type="hidden" name="targetRole" id="reportTargetRole">
+                    <input type="hidden" name="bookingId" id="reportBookingId">
+                    
+                    <div class="card-input-group" style="margin-bottom: 20px;">
+                        <label style="color: #666; font-size: 13px; font-weight: 700;">Reporting Target</label>
+                        <div id="reportTargetDisplay" style="padding: 12px; background: #f5f5f5; border-radius: 10px; font-weight: 600;">Worker Name</div>
+                    </div>
+
+                    <div class="card-input-group" style="margin-bottom: 20px;">
+                        <label style="color: #666; font-size: 13px; font-weight: 700;">Reason for Reporting</label>
+                        <select name="reason" style="width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #eee; font-family: inherit; font-size: 14px;" required>
+                            <option value="">Select a reason...</option>
+                            <option value="Worker didn't show up">Worker didn't show up</option>
+                            <option value="Extra money demanded">Extra money demanded</option>
+                            <option value="Unprofessional behavior">Unprofessional behavior</option>
+                            <option value="Service quality issue">Service quality issue</option>
+                            <option value="Safety concern">Safety concern</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="card-input-group" style="margin-bottom: 24px;">
+                        <label style="color: #666; font-size: 13px; font-weight: 700;">Describe the incident</label>
+                        <textarea name="description" rows="4" style="width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #eee; font-family: inherit; font-size: 14px; outline: none;" placeholder="Please provide details to help our team investigate..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="pay-submit-btn" style="background: linear-gradient(135deg, #ff4d4d, #cc0000);">
+                        🚩 Submit Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="common/footer :: footer"></div>
+    <script src="/js/script.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        function openReportModal(targetEmail, targetRole, bookingId, targetName) {
+            document.getElementById('reportTargetEmail').value = targetEmail;
+            document.getElementById('reportTargetRole').value = targetRole;
+            document.getElementById('reportBookingId').value = bookingId;
+            document.getElementById('reportTargetDisplay').textContent = targetName + " (" + targetRole.toLowerCase() + ")";
+            document.getElementById('reportOverlay').style.display = 'flex';
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportOverlay').style.display = 'none';
+        }
+
+        // Rest of existing scripts...
+        // ── State ──
+        let currentBookingId = null;
+        let currentAmount    = null;
+        let currentWorker    = null;
+        let selectedMode     = null;
+        let selectedUpiApp   = null;
+
+        // ── Open modal ──
+        function openPayModal(bookingId, amount, workerName, minCharge, maxCharge) {
+            currentBookingId = bookingId;
+            currentAmount    = amount;
+            currentWorker    = workerName;
+            selectedMode     = null;
+            selectedUpiApp   = null;
+
+            // Reset UI
+            document.getElementById('payDefaultState').style.display = 'block';
+            document.getElementById('paySuccessState').style.display = 'none';
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.upi-app-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('upiIdInput').style.display = 'none';
+            document.getElementById('upiIdField').value = '';
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('cardExpiry').value = '';
+            document.getElementById('cardCvv').value = '';
+            document.getElementById('cardName').value = '';
+            updatePayBtn();
+
+            // Fill in details
+            document.getElementById('headerAmount').textContent    = amount;
+            document.getElementById('modalWorkerLabel').textContent = 'Service by ' + workerName;
+            document.getElementById('summaryBookingId').textContent = '#' + bookingId;
+            document.getElementById('summaryWorker').textContent   = workerName;
+            document.getElementById('summaryMin').textContent      = minCharge;
+            document.getElementById('summaryMax').textContent      = maxCharge;
+            document.getElementById('summaryTotal').textContent    = amount;
+            document.querySelectorAll('.cod-amount').forEach(el => el.textContent = amount);
+
+            document.getElementById('payOverlay').classList.add('open');
+        }
+
+        function closePayModal() {
+            document.getElementById('payOverlay').classList.remove('open');
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('payOverlay')) closePayModal();
+        }
+
+        // ── Mode selection ──
+        function selectMode(mode) {
+            selectedMode   = mode;
+            selectedUpiApp = null;
+
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('mode-' + mode).classList.add('selected');
+
+            // Reset UPI sub-selection
+            document.querySelectorAll('.upi-app-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('upiIdInput').style.display = 'none';
+
+            updatePayBtn();
+        }
+
+        function selectUpiApp(app, event) {
+            event.stopPropagation();
+            selectedUpiApp = app;
+            document.querySelectorAll('.upi-app-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const upiInput = document.getElementById('upiIdInput');
+            if (app === 'other') {
+                upiInput.style.display = 'block';
+                document.getElementById('upiIdField').focus();
+            } else {
+                upiInput.style.display = 'none';
+                document.getElementById('upiIdField').value = '';
+            }
+            updatePayBtn();
+        }
+
+        function updatePayBtn() {
+            const btn      = document.getElementById('paySubmitBtn');
+            const btnIcon  = document.getElementById('payBtnIcon');
+            const btnText  = document.getElementById('payBtnText');
+
+            if (!selectedMode) {
+                btn.disabled = true;
+                btnIcon.textContent = '🔒';
+                btnText.textContent = 'Select a payment method';
+                return;
+            }
+
+            btn.disabled = false;
+
+            if (selectedMode === 'card') {
+                btnIcon.textContent = '💳';
+                btnText.textContent = 'Pay ₹' + currentAmount + ' with Card';
+            } else if (selectedMode === 'upi') {
+                const appName = selectedUpiApp
+                    ? (selectedUpiApp === 'gpay' ? 'Google Pay'
+                      : selectedUpiApp === 'phonepe' ? 'PhonePe'
+                      : selectedUpiApp === 'paytm'   ? 'Paytm'
+                      : 'UPI')
+                    : 'UPI';
+                btnIcon.textContent = '📱';
+                btnText.textContent = 'Pay ₹' + currentAmount + ' via ' + appName;
+            } else if (selectedMode === 'netbanking') {
+                btnIcon.textContent = '🏦';
+                btnText.textContent = 'Pay ₹' + currentAmount + ' with Net Banking';
+            } else if (selectedMode === 'cod') {
+                btnIcon.textContent = '💵';
+                btnText.textContent = 'Confirm Cash on Delivery';
+            }
+        }
+
+        // ── Card formatting ──
+        function formatCardNumber(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 16);
+            input.value = v.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function formatExpiry(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+            input.value = v;
+        }
+
+        // ── Main payment handler ──
+        function handlePayment() {
+            if (!selectedMode) return;
+
+            if (selectedMode === 'cod') {
+                handleCOD();
+            } else {
+                // Card or UPI → go through Razorpay
+                startRazorpayPayment();
+            }
+        }
+
+        // ── COD handler ──
+        function handleCOD() {
+            const btn = document.getElementById('paySubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span><span>Confirming...</span>';
+
+            // Call backend to record COD payment
+            fetch('/api/payment/cod?bookingId=' + currentBookingId, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showSuccess(
+                        '💵 COD Confirmed!',
+                        'Cash on Delivery confirmed. Please keep ₹' + currentAmount +
+                        ' ready when the worker arrives.'
+                    );
+                } else {
+                    alert('Error: ' + (data.message || 'Something went wrong'));
+                    btn.disabled = false;
+                    updatePayBtn();
+                }
+            })
+            .catch(() => {
+                alert('Something went wrong. Please try again.');
+                btn.disabled = false;
+                updatePayBtn();
+            });
+        }
+
+        // ── Razorpay handler (Card + UPI) ──
+        function startRazorpayPayment() {
+            const btn = document.getElementById('paySubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span><span>Creating order...</span>';
+
+            fetch('/api/payment/create-order?bookingId=' + currentBookingId, { method: 'POST' })
+            .then(r => r.json())
+            .then(order => {
+                if (order.error) {
+                    alert('Error: ' + order.error);
+                    btn.disabled = false;
+                    updatePayBtn();
+                    return;
+                }
+
+                // Build Razorpay options
+                const options = {
+                    key:         order.keyId,
+                    amount:      order.amount,
+                    currency:    order.currency,
+                    name:        'HomeEase',
+                    description: 'Service by ' + order.workerName,
+                    order_id:    order.orderId,
+                    prefill: {
+                        name:    order.userName,
+                        email:   order.userEmail,
+                        contact: order.userMobile
+                    },
+                    theme: { color: '#c9a84c' },
+                    modal: {
+                        ondismiss: function() {
+                            btn.disabled = false;
+                            updatePayBtn();
+                        }
+                    },
+                    handler: function(response) {
+                        verifyPayment(
+                            response.razorpay_order_id,
+                            response.razorpay_payment_id,
+                            response.razorpay_signature
+                        );
+                    }
+                };
+
+                // Pre-select payment method in Razorpay
+                if (selectedMode === 'upi') {
+                    options.method = { upi: true, card: false, netbanking: false, wallet: false };
+                    if (selectedUpiApp && selectedUpiApp !== 'other') {
+                        const vpaMap = { gpay: 'success@razorpay', phonepe: 'success@razorpay', paytm: 'success@razorpay' };
+                        options.prefill.vpa = vpaMap[selectedUpiApp] || '';
+                    } else if (selectedUpiApp === 'other') {
+                        const upiId = document.getElementById('upiIdField').value.trim();
+                        if (upiId) options.prefill.vpa = upiId;
+                    }
+                } else if (selectedMode === 'netbanking') {
+                    options.method = { netbanking: true, card: false, upi: false, wallet: false };
+                } else if (selectedMode === 'card') {
+                    options.method = { card: true, upi: false, netbanking: false, wallet: false };
+                }
+
+                const rzp = new Razorpay(options);
+
+                rzp.on('payment.failed', function(response) {
+                    fetch('/api/payment/failed?razorpayOrderId=' + order.orderId, { method: 'POST' });
+                    alert('Payment failed: ' + response.error.description + '\nPlease try again.');
+                    btn.disabled = false;
+                    updatePayBtn();
+                });
+
+                rzp.open();
+            })
+            .catch(() => {
+                alert('Could not connect. Please try again.');
+                btn.disabled = false;
+                updatePayBtn();
+            });
+        }
+
+        // ── Verify payment ──
+        function verifyPayment(orderId, paymentId, signature) {
+            const params = new URLSearchParams({
+                razorpayOrderId:   orderId,
+                razorpayPaymentId: paymentId,
+                razorpaySignature: signature
+            });
+
+            fetch('/api/payment/verify?' + params.toString(), { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showSuccess(
+                        '🎉 Payment Successful!',
+                        'Your payment of ₹' + currentAmount + ' has been verified. The worker has been notified.'
+                    );
+                } else {
+                    alert('Verification failed: ' + data.message + '\nPayment ID: ' + paymentId);
+                }
+            })
+            .catch(() => {
+                alert('Verification error. Contact support with payment ID: ' + paymentId);
+            });
+        }
+
+        // ── Show success ──
+        function showSuccess(title, desc) {
+            document.getElementById('payDefaultState').style.display = 'none';
+            document.getElementById('paySuccessState').style.display = 'block';
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successDesc').textContent  = desc;
+        }
+    </script>
+
+    <div th:replace="common/chatbot :: chatbot"></div>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

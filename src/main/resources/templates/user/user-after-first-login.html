@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Complete Your Profile | HomeEase</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="common/user-navbar :: userNavbar"></div>
+<section class="form-container">
+    <h2>Complete Your Profile 👤</h2>
+    <p style="color:#555; margin-bottom:20px;">
+        Please fill in your details to continue.
+    </p>
+
+    <form action="/user/complete-profile" method="post" enctype="multipart/form-data">
+        <div class="form-grid">
+            <label>Profile Picture (optional)</label>
+            <input type="file" name="profileImage" accept="image/png, image/jpeg, image/jpg">
+
+            <input type="tel" name="mobile" placeholder="Mobile Number" required>
+            <input type="text" name="addressLine" placeholder="House / Flat No" required>
+            <input type="text" name="city" placeholder="City" required>
+            <input type="text" name="state" placeholder="State" required>
+            <input type="text" name="pincode" placeholder="Pincode" required>
+
+            <input type="password" name="password" placeholder="Set a Password" required>
+            <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+
+
+        </div>
+        <button class="btn" type="submit">Save & Continue</button>
+    </form>
+</section>
+<div th:replace="common/footer :: footer"></div>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

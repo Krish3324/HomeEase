@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard | HomeEase</title>
+
+<link rel="stylesheet" th:href="@{/css/theme.css}">
+<link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+<link rel="stylesheet" th:href="@{/css/footer.css}">
+<style>
+    .dashboard-page { padding: 40px 8%; background: var(--light-bg); }
+    .he-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+    .he-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
+</style>
+
+<!-- Chart JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<div th:replace="common/admin-navbar :: adminNavbar"></div>
+
+<main class="dashboard-page">
+
+<section class="he-page-header">
+  <h1>Admin Dashboard</h1>
+  <p>Manage workers, users and platform activity</p>
+</section>
+
+<!-- STATS CARDS -->
+<section class="he-stats-grid">
+  <div class="he-stat-card">
+    <div class="stat-label">Total Users</div>
+    <div class="stat-value" th:text="${totalUsers}">0</div>
+  </div>
+  <div class="he-stat-card">
+    <div class="stat-label">Pending Workers</div>
+    <div class="stat-value" th:text="${pendingWorkers}">0</div>
+  </div>
+  <div class="he-stat-card">
+    <div class="stat-label">Active Workers</div>
+    <div class="stat-value" th:text="${activeWorkers}">0</div>
+  </div>
+  <div class="he-stat-card">
+    <div class="stat-label">Total Bookings</div>
+    <div class="stat-value" th:text="${totalBookings}">0</div>
+  </div>
+</section>
+
+<!-- ANALYTICS CHARTS -->
+<section class="he-charts-row">
+  <div class="he-card">
+    <h3 class="he-section-title">Workers by Status</h3>
+    <canvas id="workerChart"></canvas>
+  </div>
+  <div class="he-card">
+    <h3 class="he-section-title">User Growth</h3>
+    <canvas id="userChart"></canvas>
+  </div>
+</section>
+
+<section class="he-charts-row">
+  <div class="he-card">
+    <h3 class="he-section-title">Workers by Category</h3>
+    <canvas id="categoryChart"></canvas>
+  </div>
+  <div class="he-card">
+    <h3 class="he-section-title">Workers by City</h3>
+    <canvas id="cityChart"></canvas>
+  </div>
+</section>
+
+<!-- QUICK ACTIONS -->
+<section class="he-action-bar" style="margin-top: 40px;">
+  <a href="/admin/workers" class="he-btn he-btn-primary">Approve Workers</a>
+  <a href="/admin/users" class="he-btn he-btn-secondary">View Users</a>
+</section>
+
+</main>
+
+<div th:replace="common/footer :: footer"></div>
+
+<script th:inline="javascript">
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const totalUsersCount = parseInt(/*[[${totalUsers}]]*/ "0") || 0;
+    const activeWorkersCount = parseInt(/*[[${activeWorkersChart}]]*/ "0") || 0;
+    const pendingWorkersCount = parseInt(/*[[${pendingWorkersChart}]]*/ "0") || 0;
+
+    // Worker Status (Doughnut)
+    const workerCtx = document.getElementById('workerChart');
+    if (workerCtx) {
+        new Chart(workerCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Active', 'Pending'],
+                datasets: [{
+                    data: [activeWorkersCount, pendingWorkersCount],
+                    backgroundColor: ['#FFD966', '#111111'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    // User Growth (Line)
+    const userCtx = document.getElementById('userChart');
+    if (userCtx) {
+        new Chart(userCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Today'],
+                datasets: [{
+                    label: 'Users',
+                    data: [
+                        Math.floor(totalUsersCount * 0.1),
+                        Math.floor(totalUsersCount * 0.3),
+                        Math.floor(totalUsersCount * 0.45),
+                        Math.floor(totalUsersCount * 0.7),
+                        Math.floor(totalUsersCount * 0.85),
+                        totalUsersCount
+                    ],
+                    borderColor: '#FFD966',
+                    backgroundColor: 'rgba(255, 217, 102, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    // Workers by Category (Pie)
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx) {
+        new Chart(categoryCtx, {
+            type: 'pie',
+            data: {
+                labels: /*[[${categoryLabels}]]*/ [],
+                datasets: [{
+                    data: /*[[${categoryCounts}]]*/ [],
+                    backgroundColor: ['#FFD966', '#111111', '#555555', '#888888', '#e5e7eb'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    // Workers by City (Bar)
+    const cityCtx = document.getElementById('cityChart');
+    if (cityCtx) {
+        new Chart(cityCtx, {
+            type: 'bar',
+            data: {
+                labels: /*[[${cityLabels}]]*/ [],
+                datasets: [{
+                    label: 'Workers',
+                    data: /*[[${cityCounts}]]*/ [],
+                    backgroundColor: '#FFD966',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, grid: { display: false }, ticks: { stepSize: 1 } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+});
+
+</script>
+
+<script src="/js/script.js"></script>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

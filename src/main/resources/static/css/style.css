@@ -1,0 +1,536 @@
+:root {
+  --white: #ffffff;
+  --yellow: #FFE079;
+  --black: #202020;
+  --light-bg: #f6f6f6;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Arimo", sans-serif;
+}
+
+body {
+  background: var(--white);
+  color: var(--black);
+  padding-top: 80px; /* height of navbar */
+}
+
+
+/* NAVBAR */
+.navbar {
+  position: fixed;              /* FIXED NAVBAR */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 8%;
+
+   background: rgba(255, 255, 255, 0.55);  /* MORE TRANSPARENT */
+  backdrop-filter: blur(8 px);
+  -webkit-backdrop-filter: blur(8 px);
+
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.navbar.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.navbar nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: var(--black);
+}
+
+/* BUTTONS */
+.btn {
+  background: var(--yellow);
+  color: var(--black);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-outline {
+  border: 1px solid var(--black);
+  background: transparent;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* HAMBURGER */
+.hamburger {
+  display: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+/* MOBILE MENU */
+.mobile-menu {
+  display: none;
+  flex-direction: column;
+  background: var(--white);
+  position: fixed;
+  top: 80px;
+  right: 8%;
+  width: 200px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 15px;
+  z-index: 9999;
+}
+
+.mobile-menu a {
+  padding: 10px;
+  text-decoration: none;
+  color: var(--black);
+}
+
+/* HERO */
+.hero {
+  display: flex;
+  gap: 40px;
+  padding: 80px 8%;
+  flex-wrap: wrap;
+}
+
+.hero-text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.hero-text h1 {
+  font-size: 44px;
+}
+
+.hero-text p {
+  margin: 15px 0 25px;
+  color: #555;
+}
+
+.hero-image {
+  flex: 1;
+  min-width: 280px;
+}
+
+.hero-image img {
+  width: 100%;
+  border-radius: 14px;
+}
+
+/* STEPS */
+.steps {
+  background: var(--light-bg);
+  text-align: center;
+  padding: 80px 8%;
+}
+
+.step-cards {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+
+.card {
+  background: var(--white);
+  padding: 30px;
+  width: 280px;
+  border-radius: 14px;
+}
+
+/* ABOUT */
+.about {
+  display: flex;
+  gap: 40px;
+  padding: 80px 8%;
+  flex-wrap: wrap;
+}
+
+.about div,
+.about img {
+  flex: 1;
+  min-width: 280px;
+}
+
+.about img {
+  width: 100%;
+  border-radius: 14px;
+}
+
+/* CONTACT */
+.contact {
+  padding: 80px 8%;
+}
+
+.contact form {
+  max-width: 500px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.contact input,
+.contact textarea {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* FOOTER */
+footer {
+  background: var(--black);
+  color: var(--white);
+  padding: 50px 8%;
+}
+
+.footer-content {
+  display: flex;
+  gap: 30px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.copy {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* SCROLL BUTTONS */
+.scroll-btn {
+  position: fixed;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  background: var(--yellow);
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.scroll-btn.top { bottom: 90px; }
+.scroll-btn.bottom { bottom: 30px; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .navbar nav {
+    display: none;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .mobile-menu.show {
+    display: flex;
+  }
+
+  .hero-text h1 {
+    font-size: 32px;
+  }
+}
+
+
+/* =========================
+   AUTH PAGES (LOGIN / REGISTER)
+========================= */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    padding: 20px;
+}
+
+.auth-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 400px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease;
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #222;
+}
+
+.auth-card .form-group {
+    margin-bottom: 15px;
+}
+
+.auth-card label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: 0.3s;
+}
+
+.auth-card input:focus {
+    border-color: #5c67f2;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 12px;
+    background: #5c67f2;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.auth-btn:hover {
+    background: #4a54e1;
+}
+
+.auth-card p {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.auth-card a {
+    color: #5c67f2;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 20px;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   ROLE POPUP
+========================= */
+.role-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(32, 32, 32, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.role-box {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: 16px;
+  width: 92%;
+  max-width: 420px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.role-box h2 {
+  margin-bottom: 1.5rem;
+  color: var(--black);
+  font-weight: 600;
+}
+
+.role-btn {
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* User button */
+.role-btn.user {
+  background: var(--black);
+  color: var(--white);
+}
+
+.role-btn.user:hover {
+  background: var(--yellow);
+  color: var(--black);
+}
+
+/* Worker button */
+.role-btn.worker {
+  background: var(--white);
+  color: var(--black);
+  border: 2px solid var(--black);
+}
+
+.role-btn.worker:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--black);
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--yellow);
+}
+
+/* =========================
+   FORM COMMON STYLES
+========================= */
+.form-container {
+  max-width: 900px;
+  margin: 4rem auto;
+  padding: 2.5rem;
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.form-container h2 {
+  margin-bottom: 2rem;
+  text-align: center;
+  color: var(--black);
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+  padding: 14px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background: var(--light-bg);
+  transition: border 0.3s ease, background 0.3s ease;
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+  outline: none;
+  border-color: var(--black);
+  background: var(--white);
+}
+
+/* Submit button */
+.form-container button {
+  margin-top: 2rem;
+  padding: 14px;
+  width: 100%;
+  border-radius: 10px;
+  border: none;
+  background: var(--black);
+  color: var(--white);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-container button:hover {
+  background: var(--yellow);
+  color: var(--black);
+}
+
+/* =========================
+   RESPONSIVE TWEAKS
+========================= */
+@media (max-width: 480px) {
+  .form-container {
+    padding: 1.8rem 1.4rem;
+    margin: 2rem 1rem;
+  }
+
+  .role-box {
+    padding: 1.6rem;
+  }
+}
+
+
+
+.alert {
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.alert.error {
+  background-color: #ffe5e5;
+  color: #d8000c;
+  border: 1px solid #d8000c;
+}
+
+.alert.success {
+  background-color: #e6ffed;
+  color: #1e7e34;
+  border: 1px solid #1e7e34;
+}

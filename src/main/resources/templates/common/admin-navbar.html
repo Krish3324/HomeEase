@@ -1,0 +1,124 @@
+<nav class="admin-navbar" th:fragment="adminNavbar">
+
+  <div class="nav-left">
+    <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">☰</button>
+    <span class="brand-icon">HE</span>
+    <div class="brand-group">
+      <span class="logo">HomeEase</span>
+      <span class="role">Admin</span>
+    </div>
+  </div>
+
+  <ul class="nav-links">
+
+    <li><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle">Workers ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="/admin/workers" class="nav-link">Pending Workers</a></li>
+        <li><a href="/admin/active" class="nav-link">Active Workers</a></li>
+      </ul>
+    </li>
+
+    <li><a href="/admin/users" class="nav-link">Users</a></li>
+
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle">Bookings ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="/admin/bookings" class="nav-link">All Bookings</a></li>
+        <li><a href="/admin/bookings/completed" class="nav-link">Completed</a></li>
+        <li><a href="/admin/work-proofs" class="nav-link">Work Proofs</a></li>
+      </ul>
+    </li>
+
+    <li><a href="/admin/services" class="nav-link">Services</a></li>
+
+    <li><a href="/admin/reports" class="nav-link">Reports</a></li>
+
+    <li><a href="/logout" class="logout" onclick="handleLogout(event)">Logout</a></li>
+
+  </ul>
+
+  <!-- MOBILE SIDEBAR - NOW INSIDE NAV FRAGMENT -->
+  <div class="mobile-sidebar" id="mobileSidebar">
+    <a href="/admin/dashboard" class="sidebar-link">Dashboard</a>
+
+    <div class="sidebar-section">Workers</div>
+    <a href="/admin/workers" class="sidebar-link">Pending Workers</a>
+    <a href="/admin/active" class="sidebar-link">Active Workers</a>
+
+    <div class="sidebar-section">Bookings</div>
+    <a href="/admin/bookings" class="sidebar-link">All Bookings</a>
+    <a href="/admin/bookings/completed" class="sidebar-link">Completed</a>
+    <a href="/admin/work-proofs" class="sidebar-link">Work Proofs</a>
+
+    <a href="/admin/users" class="sidebar-link">Users</a>
+    <a href="/admin/services" class="sidebar-link">Services</a>
+    <a href="/admin/reports" class="sidebar-link">Reports</a>
+
+    <a href="/logout" class="sidebar-link logout" onclick="handleLogout(event)">Logout</a>
+  </div>
+
+  <!-- SCRIPT INSIDE NAV FRAGMENT -->
+  <script>
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const hamburger = document.getElementById("hamburgerBtn");
+    const sidebar = document.getElementById("mobileSidebar");
+
+    if (hamburger && sidebar) {
+
+      // Click hamburger to toggle sidebar
+      hamburger.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        sidebar.classList.toggle("active");
+      });
+
+      // Close sidebar when clicking outside
+      document.addEventListener("click", function (e) {
+        if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+          if(sidebar.classList.contains("active")) {
+            sidebar.classList.remove("active");
+          }
+        }
+      });
+
+      // Close sidebar when clicking a link
+      const sidebarLinks = sidebar.querySelectorAll(".sidebar-link");
+      sidebarLinks.forEach(link => {
+        link.addEventListener("click", function() {
+          setTimeout(() => {
+            sidebar.classList.remove("active");
+          }, 100);
+        });
+      });
+    }
+
+    /* Highlight active navigation links */
+    const currentPath = window.location.pathname;
+
+    document.querySelectorAll(".nav-link").forEach(link=>{
+        if(currentPath.startsWith(link.getAttribute("href"))){
+            link.classList.add("active");
+        }
+    });
+
+    document.querySelectorAll(".sidebar-link").forEach(link=>{
+        if(currentPath.startsWith(link.getAttribute("href"))){
+            link.classList.add("active");
+        }
+    });
+
+  });
+
+  function handleLogout(event){
+    event.preventDefault();
+    window.location.href="/logout";
+  }
+
+  </script>
+
+</nav>

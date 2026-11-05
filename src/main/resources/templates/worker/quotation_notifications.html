@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quotation Requests - HomeEase Worker</title>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <style>
+        .notifications-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .notification-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .notification-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f5f5f5;
+            padding-bottom: 10px;
+        }
+
+        .notification-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .notification-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .notification-badge.read {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .notification-body {
+            margin: 15px 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .user-contact {
+            font-size: 13px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .request-details {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+
+        .detail-value {
+            color: #333;
+            flex: 1;
+            text-align: right;
+        }
+
+        .detail-value.category {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .detail-value.urgency {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .problem-description {
+            background: white;
+            padding: 12px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .problem-description-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .notification-footer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            margin-bottom: -2px;
+        }
+
+        .tab-button.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+        }
+
+        .tab-button:hover {
+            color: #007bff;
+        }
+
+        .filter-bar {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .filter-bar select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .status-indicator.pending {
+            background-color: #ffc107;
+        }
+
+        .status-indicator.accepted {
+            background-color: #28a745;
+        }
+
+        .status-indicator.cancelled {
+            background-color: #dc3545;
+        }
+
+        .notification-card.occupied {
+            background: #fff3cd;
+            border-color: #ffc107;
+            opacity: 0.85;
+        }
+
+        .occupied-label {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .btn:disabled {
+            background-color: #cccccc !important;
+            color: #666 !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn:disabled:hover {
+            background-color: #cccccc !important;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ─── Quote Submit Modal ─── */
+        .quote-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .quote-overlay.open { display: flex; }
+
+        .quote-modal {
+            background: #fff;
+            border-radius: 18px;
+            padding: 36px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        .quote-modal h2 {
+            margin: 0 0 6px;
+            font-size: 22px;
+            color: #1e293b;
+        }
+        .quote-modal p.sub {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 22px;
+        }
+        .quote-modal label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .quote-modal input,
+        .quote-modal textarea {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border 0.2s;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+        .quote-modal input:focus,
+        .quote-modal textarea:focus { border-color: #6366f1; }
+        .quote-modal .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .quote-modal .modal-close {
+            position: absolute;
+            top: 16px; right: 20px;
+            background: none; border: none;
+            font-size: 22px; cursor: pointer;
+            color: #94a3b8;
+        }
+        .quote-modal .modal-close:hover { color: #334155; }
+        .btn-submit-quote {
+            flex: 1;
+            background: linear-gradient(135deg,#6366f1,#4f46e5);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+        .btn-submit-quote:hover { opacity: 0.9; }
+        .btn-cancel-modal {
+            flex: 0 0 auto;
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancel-modal:hover { background: #e2e8f0; }
+        .qm-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .qm-success {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include Worker Navbar -->
+    <div th:include="common/worker-navbar.html"></div>
+
+    <div class="notifications-container">
+        <h1 style="margin-bottom: 30px; color: #333;">📬 Quotation Requests</h1>
+
+        <!-- Tabs -->
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="filterByStatus('all')">All</button>
+            <button class="tab-button" onclick="filterByStatus('PENDING')">Pending</button>
+            <button class="tab-button" onclick="filterByStatus('ACCEPTED')">Accepted</button>
+            <button class="tab-button" onclick="filterByStatus('CANCELLED')">Cancelled</button>
+        </div>
+
+        <!-- Notifications List -->
+        <div id="notificationsList">
+            <div class="empty-state">
+                <div class="empty-state-icon">⏳</div>
+                <p>Loading quotation requests...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ SUBMIT QUOTE MODAL ═══ -->
+    <div class="quote-overlay" id="quoteOverlay" onclick="if(event.target===this)closeQuoteModal()">
+        <div class="quote-modal">
+            <button class="modal-close" onclick="closeQuoteModal()">✕</button>
+            <h2>💰 Submit Your Quote</h2>
+            <p class="sub">Set your price and a short message for this request.</p>
+
+            <div class="qm-error" id="qmError"></div>
+            <div class="qm-success" id="qmSuccess"></div>
+
+            <input type="hidden" id="qm-requestId">
+
+            <label>Your Quote Amount (₹) *</label>
+            <input type="number" id="qm-amount" min="1" placeholder="e.g. 800">
+
+            <label>Message to Customer *</label>
+            <textarea id="qm-message" rows="4" placeholder="Describe what you'll do, your experience, estimated time..."></textarea>
+
+            <div class="modal-actions">
+                <button class="btn-cancel-modal" onclick="closeQuoteModal()">Cancel</button>
+                <button class="btn-submit-quote" id="qmSubmitBtn" onclick="confirmSubmitQuote()">🚀 Submit Quote</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Footer -->
+    <div th:include="common/footer.html"></div>
+
+    <script>
+        let allNotifications = [];
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadQuotationNotifications();
+            // Refresh notifications every 30 seconds
+            setInterval(loadQuotationNotifications, 30000);
+        });
+
+        function loadQuotationNotifications() {
+            fetch('/api/quotations/worker/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        allNotifications = data.notifications;
+                        renderNotifications();
+                    } else {
+                        showError('Failed to load notifications');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Error loading notifications');
+                });
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notificationsList');
+
+            let filtered = allNotifications;
+            if (currentFilter !== 'all') {
+                filtered = allNotifications.filter(n => n.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No quotation requests ${currentFilter !== 'all' ? 'with status: ' + currentFilter : ''}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filtered.map((notif, index) => {
+                const isOccupied = notif.status === 'ACCEPTED';
+                return `
+                <div class="notification-card${isOccupied ? ' occupied' : ''}" data-id="${notif.notificationId}">
+                    <div class="notification-header">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${isOccupied ? `<span class="occupied-label">⚠️ Already Accepted</span>` : ''}
+                            <span class="status-indicator ${notif.status.toLowerCase()}"></span>
+                            <span class="notification-title">${notif.category}</span>
+                        </div>
+                        <span class="notification-badge ${notif.isRead ? 'read' : ''}">
+                            ${notif.isRead ? '✓ Read' : '● New'}
+                        </span>
+                    </div>
+
+                    <div class="notification-body">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                ${notif.userName ? notif.userName.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">${notif.userName || 'Anonymous User'}</div>
+                                <div class="user-contact">
+                                    ${notif.userPhone ? '📱 ' + notif.userPhone : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="request-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Category:</span>
+                                <span class="detail-value category">${notif.category}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Budget:</span>
+                                <span class="detail-value">₹${notif.budget ? notif.budget.toLocaleString() : 'Not specified'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Urgency:</span>
+                                <span class="detail-value urgency">${notif.message ? notif.message.split(' - ')[1] || 'NORMAL' : 'NORMAL'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date:</span>
+                                <span class="detail-value">${new Date(notif.createdAt).toLocaleDateString('en-IN')}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="problem-description-label">Problem Description:</span>
+                            <div class="problem-description">
+                                ${notif.description || 'No description provided'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notification-footer">
+                        <button class="btn btn-success"${isOccupied ? ' disabled' : ''} onclick="${isOccupied ? 'return false;' : `submitQuote(${notif.requestId})`}">
+                            ${isOccupied ? '✓ Already Accepted' : '💰 Submit Quote'}
+                        </button>
+                        <button class="btn btn-info" onclick="startChat(${notif.userId}, '${notif.userName}')">
+                            💬 Chat
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewReport(${notif.requestId})">
+                            📋 View Details
+                        </button>
+                        <button class="btn btn-danger" onclick="cancelRequest(${notif.notificationId})">
+                            ❌ Skip
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderNotifications();
+        }
+
+        function submitQuote(requestId) {
+            // Open the quote submission modal
+            document.getElementById('qm-requestId').value = requestId;
+            document.getElementById('qm-amount').value = '';
+            document.getElementById('qm-message').value = '';
+            document.getElementById('qmError').style.display = 'none';
+            document.getElementById('qmSuccess').style.display = 'none';
+            document.getElementById('qmSubmitBtn').disabled = false;
+            document.getElementById('qmSubmitBtn').textContent = '🚀 Submit Quote';
+            document.getElementById('quoteOverlay').classList.add('open');
+        }
+
+        function closeQuoteModal() {
+            document.getElementById('quoteOverlay').classList.remove('open');
+        }
+
+        async function confirmSubmitQuote() {
+            const requestId = document.getElementById('qm-requestId').value;
+            const amount    = document.getElementById('qm-amount').value.trim();
+            const message   = document.getElementById('qm-message').value.trim();
+            const errEl     = document.getElementById('qmError');
+            const okEl      = document.getElementById('qmSuccess');
+            const btn       = document.getElementById('qmSubmitBtn');
+
+            errEl.style.display = 'none';
+            okEl.style.display  = 'none';
+
+            if (!amount || isNaN(amount) || Number(amount) <= 0) {
+                errEl.textContent = 'Please enter a valid quote amount (₹).'; errEl.style.display = 'block'; return;
+            }
+            if (!message) {
+                errEl.textContent = 'Please write a message for the customer.'; errEl.style.display = 'block'; return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const csrfToken  = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers    = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
+
+            const body = `requestId=${requestId}&amount=${encodeURIComponent(amount)}&message=${encodeURIComponent(message)}`;
+
+            try {
+                const resp = await fetch('/api/quotations/worker/submit-quote', {
+                    method: 'POST', headers, body
+                });
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    okEl.textContent = '✅ ' + data.message;
+                    okEl.style.display = 'block';
+                    setTimeout(() => { closeQuoteModal(); loadQuotationNotifications(); }, 1600);
+                } else {
+                    errEl.textContent = '❌ ' + (data.message || 'Something went wrong.');
+                    errEl.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Submit Quote';
+                }
+            } catch (e) {
+                errEl.textContent = '❌ Network error. Please try again.'; errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = '🚀 Submit Quote';
+            }
+        }
+
+        function startChat(userId, userName) {
+            alert(`Chat with ${userName} — coming soon!`);
+        }
+
+        function viewReport(requestId) {
+            alert('Detailed view — coming soon!');
+        }
+
+        function cancelRequest(notificationId) {
+            if (confirm('Are you sure you want to skip this request?')) {
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                const csrfToken  = document.querySelector('meta[name="_csrf"]')?.content;
+                const headers    = {};
+                if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
+
+                fetch(`/api/quotations/worker/cancel-notification/${notificationId}`, {
+                    method: 'POST', headers
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        loadQuotationNotifications();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function showError(message) {
+            const list = document.getElementById('notificationsList');
+            list.innerHTML = `
+                <div class="empty-state" style="color: #dc3545;">
+                    <div class="empty-state-icon">⚠️</div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // Mark as read when user views the page
+        window.addEventListener('focus', function () {
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const csrfToken  = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers    = {};
+            if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
+            fetch('/api/quotations/worker/mark-all-read', {
+                method: 'POST', headers
+            }).catch(error => console.error('Error marking as read:', error));
+        });
+    </script>
+</body>
+</html>

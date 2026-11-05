@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Services | Admin | HomeEase</title>
+    <link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f4f4f7; color: #111; }
+        .page-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 24px; }
+        .page-title { font-size: 28px; font-weight: 800; margin-bottom: 16px; }
+        .page-subtitle { color: #555; margin-bottom: 24px; }
+        .admin-card { background: white; border-radius: 18px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06); padding: 24px; margin-bottom: 24px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-weight: 700; color: #333; }
+        .form-group input, .form-group textarea { padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 14px; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .submit-btn { padding: 14px 24px; background: #c9a84c; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .message { padding: 14px 18px; border-radius: 12px; margin-bottom: 18px; font-weight: 600; }
+        .message-success { background: #ecfdf5; color: #166534; border: 1px solid #a7f3d0; }
+        .message-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .services-table { width: 100%; border-collapse: collapse; }
+        .services-table th, .services-table td { padding: 16px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+        .services-table th { color: #374151; font-size: 14px; font-weight: 700; }
+        .services-table td { color: #4b5563; font-size: 14px; }
+        .badge { display: inline-flex; padding: 8px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .badge-available { background: #d1fae5; color: #166534; }
+        .badge-empty { background: #fef3c7; color: #92400e; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div th:replace="common/admin-navbar :: adminNavbar"></div>
+    <div class="page-wrapper">
+        <div class="page-title">Manage Services</div>
+        <div class="page-subtitle">Add or remove service categories that users can browse on the service panel.</div>
+
+        <div th:if="${successMsg}" class="message message-success" th:text="${successMsg}"></div>
+        <div th:if="${errorMsg}" class="message message-error" th:text="${errorMsg}"></div>
+
+        <div class="admin-card">
+            <form th:action="@{/admin/services/add}" method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Service Name</label>
+                        <input type="text" id="name" name="name" placeholder="Electrician" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" placeholder="Short description displayed to users"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; display:flex; justify-content:flex-end;"><button class="submit-btn">Add Service</button></div>
+            </form>
+        </div>
+
+        <div class="admin-card">
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Description</th>
+                        <th>Available Workers</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="category : ${serviceCategories}">
+                        <td th:text="${category.name}"></td>
+                        <td th:text="${category.description}"></td>
+                        <td th:text="${#numbers.formatInteger(workerCounts[category.name] ?: 0, 0)}"></td>
+                        <td>
+                            <span th:classappend="${workerCounts[category.name] > 0} ? 'badge badge-available' : 'badge badge-empty'"
+                                  th:text="${workerCounts[category.name] > 0} ? 'Available Now' : 'Apply for Service'"></span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/services/delete}" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${category.id}">
+                                <button class="delete-btn" type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(serviceCategories)}">
+                        <td colspan="5" style="padding: 18px; text-align:center; color:#6b7280;">No services added yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

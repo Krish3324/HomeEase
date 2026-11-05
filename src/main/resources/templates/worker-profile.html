@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${worker.name} + ' | HomeEase'">Worker Profile | HomeEase</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --gold: #c9a84c;
+            --gold-2: #e8cc7a;
+            --gold-pale: #fdf8ee;
+            --gold-border: #e8d5a0;
+            --white: #ffffff;
+            --off: #fafaf8;
+            --dark: #141410;
+            --mid: #52524a;
+            --light: #a0a098;
+            --border: #edeae0;
+            --green: #2d7a3a;
+            --green-bg: #edf7ef;
+            --red: #c0392b;
+            --red-bg: #fdf0ee;
+            --radius: 18px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.11);
+            --shadow-gold: 0 8px 40px rgba(201, 168, 76, 0.22);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--off);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* ══════════════════════════
+           TOP NAV
+        ══════════════════════════ */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+            text-decoration: none;
+        }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--mid);
+            text-decoration: none;
+            padding: 7px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-back:hover {
+            border-color: var(--gold-border);
+            color: var(--gold);
+            background: var(--gold-pale);
+        }
+
+        /* ══════════════════════════
+           PROFILE HERO — 2-column split
+        ══════════════════════════ */
+        .profile-hero {
+            background: transparent;
+            padding: 80px 0 0;
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1.3fr 0.9fr;
+            gap: 40px;
+            align-items: start;
+            position: relative;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* LEFT — identity */
+        .hero-identity {
+            padding-bottom: 48px;
+        }
+
+        .hero-chips {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            padding: 5px 13px;
+            border-radius: 20px;
+        }
+
+        .chip-category {
+            background: var(--gold-pale);
+            border: 1px solid var(--gold-border);
+            color: #8a6a1a;
+        }
+
+        .chip-online {
+            background: var(--green-bg);
+            border: 1px solid #b2ddb9;
+            color: var(--green);
+        }
+
+        .chip-online::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 1.6s ease-in-out infinite;
+        }
+
+        .chip-offline {
+            background: var(--red-bg);
+            border: 1px solid #f5c6c0;
+            color: var(--red);
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .hero-name {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(2.6rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1.05;
+            color: var(--dark);
+            margin-bottom: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-name em {
+            font-style: italic;
+            color: var(--gold);
+        }
+
+        .hero-tagline {
+            font-size: 15px;
+            color: var(--mid);
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 480px;
+            margin-bottom: 28px;
+        }
+
+        .hero-pills {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .hero-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--mid);
+        }
+
+        .hero-pill strong {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .pill-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: var(--gold-pale);
+            border: 1px solid var(--gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* RIGHT — floating card */
+        .hero-card {
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            position: relative;
+            overflow: visible;
+            border: none;
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .card-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold) 0%, #a07828 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            border: 3px solid rgba(201, 168, 76, 0.3);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .card-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .card-sub {
+            font-size: 12px;
+            color: #6b5e3c;
+            margin-bottom: 28px;
+        }
+
+        .card-stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .card-stat {
+            background: #fff8e6;
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .card-stat-val {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .card-stat-lbl {
+            font-size: 11px;
+            color: #7d6b2d;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .price-display {
+            border-top: 1px solid rgba(201, 168, 76, 0.25);
+            padding-top: 20px;
+            margin-bottom: 24px;
+        }
+
+        .price-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #8a6a1a;
+            margin-bottom: 6px;
+        }
+
+        .price-val {
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .price-val span {
+            font-size: 13px;
+            color: rgba(17, 24, 39, 0.75);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 300;
+        }
+
+        .btn-book {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 16px;
+            background: #fbbf24;
+            color: #111827;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.18);
+        }
+
+        .btn-book:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(251, 191, 36, 0.25);
+        }
+
+        .btn-book-disabled {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ══════════════════════════
+           TAB BAR
+        ══════════════════════════ */
+        .tab-bar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 60px;
+            z-index: 100;
+        }
+
+        .tab-bar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            gap: 0;
+        }
+
+        .tab-link {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--light);
+            text-decoration: none;
+            padding: 16px 22px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .tab-link:hover {
+            color: var(--dark);
+        }
+
+        .tab-link.active {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        /* ══════════════════════════
+           PAGE BODY
+        ══════════════════════════ */
+        .page-body {
+            max-width: 1200px;
+            margin: 48px auto 80px;
+            padding: 0 40px;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 32px;
+        }
+
+        /* ══════════════════════════
+           SECTION TITLES
+        ══════════════════════════ */
+        .sec-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .sec-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ══════════════════════════
+           ABOUT SECTION
+        ══════════════════════════ */
+        .about-section {
+            margin-bottom: 40px;
+        }
+
+        .bio-block {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bio-block::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 120px;
+            color: var(--gold-pale);
+            line-height: 1;
+            pointer-events: none;
+            font-style: italic;
+        }
+
+        .bio-text {
+            font-size: 15px;
+            color: var(--mid);
+            line-height: 1.85;
+            position: relative;
+        }
+
+        /* ══════════════════════════
+           DETAILS GRID
+        ══════════════════════════ */
+        .details-section {
+            margin-bottom: 40px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-tile {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+
+        .detail-tile:hover {
+            border-color: var(--gold-border);
+            box-shadow: 0 4px 16px rgba(201, 168, 76, 0.1);
+        }
+
+        .detail-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            background: var(--gold-pale);
+            border: 1px solid var(--gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .detail-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--light);
+            margin-bottom: 4px;
+        }
+
+        .detail-val {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* ══════════════════════════
+           REVIEWS
+        ══════════════════════════ */
+        .reviews-section {
+            margin-bottom: 40px;
+        }
+
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .review-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px 24px;
+            position: relative;
+            transition: box-shadow 0.2s;
+        }
+
+        .review-card:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .review-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            background: linear-gradient(180deg, var(--gold-2), var(--gold));
+            border-radius: 0 3px 3px 0;
+        }
+
+        .review-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .reviewer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reviewer-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--gold-pale);
+            border: 1px solid var(--gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .reviewer-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .reviewer-date {
+            font-size: 11px;
+            color: var(--light);
+            margin-top: 1px;
+        }
+
+        .review-stars {
+            color: var(--gold);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .review-text {
+            font-size: 14px;
+            color: var(--mid);
+            line-height: 1.65;
+        }
+
+        .no-reviews {
+            background: var(--white);
+            border: 1px dashed var(--gold-border);
+            border-radius: var(--radius);
+            padding: 48px;
+            text-align: center;
+        }
+
+        .no-reviews-icon {
+            font-size: 40px;
+            margin-bottom: 14px;
+        }
+
+        .no-reviews h4 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .no-reviews p {
+            font-size: 13px;
+            color: var(--light);
+        }
+
+        /* ══════════════════════════
+           SIDEBAR
+        ══════════════════════════ */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .sidebar-card h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Trust items */
+        .trust-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .trust-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--green-bg);
+            border: 1px solid #b2ddb9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--green);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .trust-text {
+            font-size: 13px;
+            color: var(--mid);
+            line-height: 1.5;
+        }
+
+        .trust-text strong {
+            color: var(--dark);
+            display: block;
+            margin-bottom: 1px;
+        }
+
+        /* Contact card */
+        .contact-card {
+            background: linear-gradient(135deg, var(--gold-pale) 0%, #fff8e8 100%);
+            border: 1px solid var(--gold-border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .contact-card h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .contact-card p {
+            font-size: 12px;
+            color: var(--mid);
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--white);
+            border: 1px solid var(--gold-border);
+            border-radius: 10px;
+        }
+
+        .contact-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: var(--gold-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .contact-val {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .contact-lbl {
+            font-size: 11px;
+            color: var(--light);
+        }
+
+        /* ══════════════════════════
+           ANIMATIONS
+        ══════════════════════════ */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .anim {
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .anim-1 {
+            animation-delay: 0.05s;
+        }
+
+        .anim-2 {
+            animation-delay: 0.12s;
+        }
+
+        .anim-3 {
+            animation-delay: 0.19s;
+        }
+
+        .anim-4 {
+            animation-delay: 0.26s;
+        }
+
+        .anim-5 {
+            animation-delay: 0.33s;
+        }
+
+        /* ══════════════════════════
+           RESPONSIVE
+        ══════════════════════════ */
+        @media (max-width: 960px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .hero-card {
+                border-radius: 0;
+                margin: 0 -40px;
+            }
+
+            .page-body {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .top-nav {
+                padding: 0 20px;
+            }
+
+            .hero-inner,
+            .tab-bar-inner,
+            .page-body {
+                padding: 0 20px;
+            }
+
+            .hero-identity {
+                padding-bottom: 32px;
+            }
+
+            .hero-card {
+                margin: 0 -20px;
+                padding: 28px 20px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP NAV -->
+    <nav class="top-nav">
+        <a href="/user/dashboard" class="nav-logo">HomeEase</a>
+        <a href="javascript:history.back()" class="nav-back">← Back</a>
+    </nav>
+
+    <!-- PROFILE HERO -->
+    <div class="profile-hero">
+        <div class="hero-inner">
+
+            <!-- LEFT — Identity -->
+            <div class="hero-identity anim anim-1">
+                <div class="hero-chips">
+                    <span class="chip chip-category" th:text="${worker.category}">Category</span>
+                    <span th:if="${worker.online}" class="chip chip-online">Available Now</span>
+                    <span th:unless="${worker.online}" class="chip chip-offline">Currently Offline</span>
+                </div>
+
+                <h1 class="hero-name">
+                    <span th:text="${worker.name}">Worker Name</span>
+                </h1>
+
+                <p class="hero-tagline" th:text="${worker.bio}">
+                    Professional bio goes here describing expertise and work style.
+                </p>
+
+                <div class="hero-pills">
+                    <div class="hero-pill">
+                        <div class="pill-icon">📍</div>
+                        <div><strong th:text="${worker.city} + ', ' + ${worker.state}">City</strong></div>
+                    </div>
+                    <div class="hero-pill">
+                        <div class="pill-icon">🎓</div>
+                        <div><strong th:text="${worker.experience} + ' yrs'">Exp</strong> experience</div>
+                    </div>
+                    <div class="hero-pill">
+                        <div class="pill-icon">📌</div>
+                        <div>Pincode <strong th:text="${worker.pincode}">000000</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT — Floating dark card -->
+            <div class="hero-card anim anim-2">
+                <div class="card-avatar">👷</div>
+                <div class="card-name" th:text="${worker.name}">Name</div>
+                <div class="card-sub" th:text="'Verified ' + ${worker.category} + ' Professional'">Subtitle</div>
+
+                <div class="card-stat-row">
+                    <div class="card-stat">
+                        <div class="card-stat-val" th:text="${worker.rating != null ? worker.rating : '—'}">4.8</div>
+                        <div class="card-stat-lbl">⭐ Rating</div>
+                    </div>
+                    <div class="card-stat">
+                        <div class="card-stat-val" th:text="${worker.experience}">5</div>
+                        <div class="card-stat-lbl">Years Exp</div>
+                    </div>
+                    <div class="card-stat">
+                        <div class="card-stat-val" th:text="${reviews != null ? reviews.size() : 0}">0</div>
+                        <div class="card-stat-lbl">Reviews</div>
+                    </div>
+                    <div class="card-stat">
+                        <div class="card-stat-val">✓</div>
+                        <div class="card-stat-lbl">Verified</div>
+                    </div>
+                </div>
+
+                <div class="price-display">
+                    <div class="price-lbl">Charge Range</div>
+                    <div class="price-val">
+                        ₹<span th:text="${worker.minCharge}">0</span>
+                        <span>–</span>
+                        ₹<span th:text="${worker.maxCharge}">0</span>
+                        <span>/ job</span>
+                    </div>
+                </div>
+
+                <!-- Book Now if online -->
+                <div th:if="${worker.online}">
+                    <a th:href="@{/user/hire/{id}(id=${worker.id})}" class="btn-book" th:id="'bookBtn-' + ${worker.id}">
+                        Book Now &nbsp;→
+                    </a>
+                </div>
+            </div>
+
+            <!-- Offline notice -->
+            <div th:unless="${worker.online}">
+                <div class="btn-book-disabled">
+                    ⚠ Worker is currently offline
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+        <div class="tab-bar-inner">
+            <a href="#about" class="tab-link active">About</a>
+            <a href="#details" class="tab-link">Details</a>
+            <a href="#reviews" class="tab-link">Reviews</a>
+            <a href="#contact" class="tab-link">Contact</a>
+        </div>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+        <!-- LEFT COLUMN -->
+        <div>
+
+            <!-- ABOUT -->
+            <div class="about-section anim anim-2" id="about">
+                <div class="sec-label">Professional Bio</div>
+                <div class="sec-title">About this Professional</div>
+                <div class="bio-block">
+                    <p class="bio-text" th:text="${worker.bio}">Bio text goes here.</p>
+                </div>
+            </div>
+
+            <!-- DETAILS -->
+            <div class="details-section anim anim-3" id="details">
+                <div class="sec-label">Work Information</div>
+                <div class="sec-title">Professional Details</div>
+                <div class="details-grid">
+                    <div class="detail-tile">
+                        <div class="detail-icon-wrap">📂</div>
+                        <div>
+                            <div class="detail-lbl">Category</div>
+                            <div class="detail-val" th:text="${worker.category}">—</div>
+                        </div>
+                    </div>
+                    <div class="detail-tile">
+                        <div class="detail-icon-wrap">📍</div>
+                        <div>
+                            <div class="detail-lbl">Location</div>
+                            <div class="detail-val" th:text="${worker.city} + ', ' + ${worker.state}">—</div>
+                        </div>
+                    </div>
+                    <div class="detail-tile">
+                        <div class="detail-icon-wrap">💰</div>
+                        <div>
+                            <div class="detail-lbl">Charge Range</div>
+                            <div class="detail-val">₹<span th:text="${worker.minCharge}">0</span> – ₹<span
+                                    th:text="${worker.maxCharge}">0</span></div>
+                        </div>
+                    </div>
+                    <div class="detail-tile">
+                        <div class="detail-icon-wrap">🎓</div>
+                        <div>
+                            <div class="detail-lbl">Experience</div>
+                            <div class="detail-val" th:text="${worker.experience} + ' Years'">—</div>
+                        </div>
+                    </div>
+                    <div class="detail-tile">
+                        <div class="detail-icon-wrap">📌</div>
+                        <div>
+                            <div class="detail-lbl">Pincode</div>
+                            <div class="detail-val" th:text="${worker.pincode}">—</div>
+                        </div>
+                    </div>
+                    <div class="detail-tile">
+                        <div class="detail-icon-wrap">⭐</div>
+                        <div>
+                            <div class="detail-lbl">Rating</div>
+                            <div class="detail-val"
+                                th:text="${worker.rating != null ? worker.rating + ' / 5.0' : 'Not rated yet'}">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVIEWS -->
+            <div class="reviews-section anim anim-4" id="reviews">
+                <div class="sec-label">Client Feedback</div>
+                <div class="sec-title">Reviews</div>
+
+                <div class="reviews-list">
+                    <!-- No reviews -->
+                    <div th:if="${reviews == null or reviews.isEmpty()}" class="no-reviews">
+                        <div class="no-reviews-icon">💬</div>
+                        <h4>No reviews yet</h4>
+                        <p>Be the first to hire and leave a review for this professional.</p>
+                    </div>
+
+                    <!-- Review cards -->
+                    <div th:each="review : ${reviews}" class="review-card">
+                        <div class="review-top">
+                            <div class="reviewer">
+                                <div class="reviewer-avatar" th:text="${review.user.name.substring(0,1)}">👤</div>
+                                <div>
+                                    <div class="reviewer-name" th:text="${review.user.name}">User</div>
+                                    <div class="reviewer-date" th:text="${#temporals.format(review.createdAt, 'dd MMM yyyy')}">Date</div>
+                                </div>
+                            </div>
+                            <div class="review-stars">
+                                <span th:each="i : ${#numbers.sequence(1, review.stars)}">★</span>
+                            </div>
+                        </div>
+                        <div class="review-text" th:text="${review.review}">Review text</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar anim anim-3">
+
+            <!-- Trust signals -->
+            <div class="sidebar-card">
+                <h3>Why Choose This Pro</h3>
+                <div class="trust-list">
+                    <div class="trust-item">
+                        <div class="trust-check">✓</div>
+                        <div class="trust-text">
+                            <strong>Background Verified</strong>
+                            Approved by HomeEase team before listing.
+                        </div>
+                    </div>
+                    <div class="trust-item">
+                        <div class="trust-check">✓</div>
+                        <div class="trust-text">
+                            <strong>ID Checked</strong>
+                            Government ID verified and on file.
+                        </div>
+                    </div>
+                    <div class="trust-item">
+                        <div class="trust-check">✓</div>
+                        <div class="trust-text">
+                            <strong>Skilled Professional</strong>
+                            <span th:text="${worker.experience} + ' years of hands-on experience.'">Years exp.</span>
+                        </div>
+                    </div>
+                    <div class="trust-item">
+                        <div class="trust-check">✓</div>
+                        <div class="trust-text">
+                            <strong>Customer Rated</strong>
+                            Real reviews from verified bookings.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="contact-card" id="contact">
+                <h3>Contact Details</h3>
+                <p>Reach out directly after booking or for quick queries.</p>
+                <div class="contact-row">
+                    <div class="contact-icon">📱</div>
+                    <div>
+                        <div class="contact-lbl">Mobile Number</div>
+                        <div class="contact-val" th:text="${worker.mobile}">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book again CTA (mobile sticky feel) -->
+            <div class="sidebar-card" th:if="${worker.online}">
+                <h3>Ready to Book?</h3>
+                <p style="font-size:13px;color:var(--mid);margin-bottom:16px;line-height:1.6;">
+                    This professional is <strong style="color:var(--green)">available right now</strong>. Book instantly
+                    and get your work done today.
+                </p>
+
+                <a th:href="@{/user/hire/{id}(id=${worker.id})}" class="btn-book"
+                    style="background:var(--gold);color:var(--dark);">
+                    Book Now →
+                </a>
+
+            </div>
+
+            <!-- Safety & Report -->
+            <div class="sidebar-card" style="border-color: rgba(192, 57, 43, 0.2); background: #fdf0ee;">
+                <h3 style="color: var(--red); border-color: rgba(192, 57, 43, 0.1);">Safety & Trust</h3>
+                <p style="font-size: 12px; color: var(--mid); margin-bottom: 16px; line-height: 1.6;">
+                    Something doesn't seem right? Report this professional to our safety team for review.
+                </p>
+                <button class="nav-back" style="width: 100%; justify-content: center; border-color: var(--red); color: var(--red); background: white;"
+                        th:onclick="openReportModal([[${worker.email}]], 'WORKER', null, [[${worker.name}]])">
+                    ⚠️ Report Professional
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         REPORT MODAL (Glassy)
+    ══════════════════════════════════════════ -->
+    <div id="reportOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px;" onclick="if(event.target===this) closeReportModal()">
+        <div style="background:white; border-radius:24px; width:100%; max-width:500px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,0.3); animation: fadeUp 0.4s easeOut;">
+            <div style="background:linear-gradient(135deg, #c0392b, #e74c3c); padding:24px; color:white; position:relative;">
+                <button onclick="closeReportModal()" style="position:absolute; top:15px; right:20px; background:none; border:none; color:white; font-size:20px; cursor:pointer;">✕</button>
+                <h2 style="font-family:'Inter', sans-serif; font-weight:800; font-size:20px; margin-bottom:4px;">Report Professional</h2>
+                <p style="font-size:13px; opacity:0.8;">Your report is confidential and helps keep HomeEase safe.</p>
+            </div>
+            <div style="padding:24px;">
+                <form th:action="@{/user/submit-report}" method="post">
+                    <input type="hidden" name="targetEmail" id="reportTargetEmail">
+                    <input type="hidden" name="targetRole" id="reportTargetRole">
+                    <input type="hidden" name="bookingId" id="reportBookingId">
+
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--light); letter-spacing:1px; margin-bottom:8px;">Target</label>
+                        <div id="reportTargetDisplay" style="font-weight:700; color:var(--dark); font-size:15px; padding:12px; background:var(--off); border-radius:12px; border:1px solid var(--border);">Worker Name</div>
+                    </div>
+
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--light); letter-spacing:1px; margin-bottom:8px;">Reason</label>
+                        <select name="reason" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); font-family:inherit; font-size:14px; outline:none; background:white;" required>
+                            <option value="">Select a reason...</option>
+                            <option value="Inappropriate profile content">Inappropriate profile content</option>
+                            <option value="Misleading information">Misleading information</option>
+                            <option value="Safety concerns">Safety concerns</option>
+                            <option value="Suspicious behavior">Suspicious behavior</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:24px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--light); letter-spacing:1px; margin-bottom:8px;">Description</label>
+                        <textarea name="description" rows="4" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); font-family:inherit; font-size:14px; outline:none; resize:none;" placeholder="Provide more details..." required></textarea>
+                    </div>
+
+                    <button type="submit" style="width:100%; padding:16px; background:var(--red); color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; transition:transform 0.2s;">
+                        Submit Secret Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth tab highlighting on scroll
+        const tabs = document.querySelectorAll('.tab-link');
+        const sections = ['about', 'details', 'reviews', 'contact'].map(id => document.getElementById(id)).filter(Boolean);
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(sec => {
+                if (window.scrollY >= sec.offsetTop - 140) current = sec.id;
+            });
+            tabs.forEach(t => {
+                t.classList.toggle('active', t.getAttribute('href') === '#' + current);
+            });
+        });
+
+        function openReportModal(targetEmail, targetRole, bookingId, targetName) {
+            document.getElementById('reportTargetEmail').value = targetEmail;
+            document.getElementById('reportTargetRole').value = targetRole;
+            document.getElementById('reportBookingId').value = bookingId || '';
+            document.getElementById('reportTargetDisplay').textContent = targetName;
+            document.getElementById('reportOverlay').style.display = 'flex';
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportOverlay').style.display = 'none';
+        }
+    </script>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+
+</html>

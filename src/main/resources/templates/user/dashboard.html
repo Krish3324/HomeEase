@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | HomeEase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --gold-pale: rgba(253,248,238,0.6);
+            --gold-border: rgba(232,213,160,0.5);
+            --white: #ffffff;
+            --off-white: #f9f8f5;
+            --text-dark: #181818;
+            --text-mid: #4a4a45;
+            --text-light: #909088;
+            --border: rgba(234,231,220,0.6);
+            --radius: 20px;
+            /* Apple Liquid Glass */
+            --glass-bg: rgba(255,255,255,0.45);
+            --glass-border: rgba(255,255,255,0.70);
+            --glass-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+            --glass-blur: blur(24px) saturate(180%);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            font-size: 15px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #faf7ef;
+        }
+
+
+        nav.navbar, .welcome-banner, .page-body, footer {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ════════════════════════════════════════════
+           WELCOME BANNER
+        ════════════════════════════════════════════ */
+        .welcome-banner {
+            background: #ffffff;
+            border-bottom: 1px solid rgba(234,231,220,0.75);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+            padding: 48px 0 0;
+        }
+
+        .banner-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb span { color: var(--gold); font-weight: 500; }
+
+        .welcome-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 32px;
+        }
+
+        .welcome-left h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 3.4rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .welcome-left h1 em { font-style: normal; color: var(--gold); }
+
+        .welcome-left p {
+            color: var(--text-mid);
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+        .welcome-date .date-day {
+            font-family: 'Inter', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+            text-align: right;
+        }
+
+        .welcome-date .date-rest {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .tab-nav {
+            display: flex;
+            border-top: 1px solid rgba(234,231,220,0.4);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+
+        .tab-nav a {
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            padding: 15px 22px;
+            border-bottom: 2.5px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-nav a:hover { color: var(--text-dark); }
+        .tab-nav a.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 600; }
+
+        /* ════════════════════════════════════════════
+           PAGE BODY
+        ════════════════════════════════════════════ */
+        .page-body {
+            max-width: 1400px;
+            margin: 36px auto 100px;
+            padding: 0 48px;
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 28px;
+        }
+
+        /* ════════════════════════════════════════════
+           STAT CARDS — full liquid glass
+        ════════════════════════════════════════════ */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+            grid-column: 1 / -1;
+        }
+
+        .stat-card {
+            border-radius: var(--radius);
+            padding: 26px 22px;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            transition: transform 0.25s, box-shadow 0.25s;
+            background: #ffffff;
+            border: 1px solid rgba(228,223,211,0.8);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+        }
+
+        .stat-card:nth-child(2) { cursor: pointer; }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 46px rgba(0,0,0,0.09);
+        }
+
+        /* Coloured bottom line */
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .stat-card:nth-child(1)::after { background: linear-gradient(90deg,#c9a84c,#e8cc7a); }
+        .stat-card:nth-child(2)::after { background: linear-gradient(90deg,#4caf82,#7adba8); }
+        .stat-card:nth-child(3)::after { background: linear-gradient(90deg,#4c7ecf,#7aaae8); }
+        .stat-card:nth-child(4)::after { background: linear-gradient(90deg,#cf7a4c,#e8a87a); }
+
+        /* shimmer on hover */
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -60%; left: -70%;
+            width: 45%; height: 200%;
+            background: linear-gradient(105deg, transparent, rgba(255,255,255,0.50), transparent);
+            transform: skewX(-18deg);
+            transition: left 0.55s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .stat-card:hover::before { left: 150%; }
+
+        .stat-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-light);
+        }
+
+        .stat-icon-wrap {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            background: rgba(201,168,76,0.16);
+            border: 1px solid rgba(201,168,76,0.28);
+        }
+
+        .stat-value {
+            font-family: 'Inter', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--text-dark);
+        }
+
+        .stat-sub { font-size: 13px; color: var(--text-light); margin-top: 6px; }
+
+        /* ════════════════════════════════════════════
+           SECTION HEAD
+        ════════════════════════════════════════════ */
+        .section-head {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(234,231,220,0.5);
+        }
+
+        /* ════════════════════════════════════════════
+           ACTION ITEMS — liquid glass buttons
+        ════════════════════════════════════════════ */
+        .action-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 22px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.22s ease;
+            background: #ffffff;
+            border: 1px solid rgba(228,223,211,0.9);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.09);
+        }
+
+        .action-item.primary {
+            background: linear-gradient(135deg, #f9dd7b 0%, #f7ce40 100%);
+            border-color: rgba(249,221,123,0.45);
+            color: #111;
+            box-shadow: 0 12px 30px rgba(250,204,21,0.22);
+        }
+
+        .action-item.primary:hover {
+            transform: translateX(3px);
+            box-shadow: 0 18px 40px rgba(250,204,21,0.28);
+        }
+
+        .action-item .action-arrow { color: rgba(24,24,24,0.75); }
+
+        .action-icon {
+            width: 50px; height: 50px;
+            border-radius: 14px;
+            background: rgba(250,242,215,0.95);
+            border: 1px solid rgba(249,221,123,0.55);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .action-text { flex: 1; }
+        .action-text strong { display: block; font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+        .action-text span { font-size: 13px; opacity: 0.70; }
+
+        .action-arrow {
+            font-size: 20px;
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.22s;
+            color: rgba(201,168,76,0.9);
+        }
+
+        .action-item.primary .action-arrow { color: rgba(255,255,255,0.85); }
+
+        /* ════════════════════════════════════════════
+           SERVICE TILES — liquid glass
+        ════════════════════════════════════════════ */
+        .services-section { margin-bottom: 28px; }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .service-tile {
+            border-radius: 18px;
+            padding: 24px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid rgba(228,223,211,0.9);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .service-tile:hover {
+            background: #fffbeb;
+            border-color: rgba(249,220,89,0.55);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 32px rgba(250,204,21,0.18);
+        }
+
+        .service-tile .emoji { font-size: 34px; display: block; margin-bottom: 10px; }
+        .service-tile .name { font-size: 14px; font-weight: 600; }
+
+        /* ════════════════════════════════════════════
+           SIDEBAR — liquid glass panels
+        ════════════════════════════════════════════ */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+        .sidebar-card {
+            border-radius: var(--radius);
+            padding: 24px;
+            background: #ffffff;
+            border: 1px solid rgba(228,223,211,0.9);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+        }
+
+        .sidebar-card h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: var(--text-dark);
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(234,231,220,0.45);
+        }
+
+        /* Gold premium card */
+        .gold-card {
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f9de7f 0%, #f8d964 100%);
+            border: 1px solid rgba(250,204,21,0.35);
+            box-shadow: 0 14px 34px rgba(250,204,21,0.22);
+        }
+
+        @keyframes goldPulse {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .gold-card::before {
+            content: '◈';
+            position: absolute;
+            top: -20px; right: -10px;
+            font-size: 140px;
+            color: rgba(255,255,255,0.10);
+            line-height: 1;
+        }
+
+        /* Glass sheen on premium card */
+        .gold-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 45%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+            border-radius: var(--radius) var(--radius) 0 0;
+            pointer-events: none;
+        }
+
+        .gold-card h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gold-card p {
+            color: rgba(255,255,255,0.88);
+            font-size: 14px;
+            line-height: 1.65;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gold-badge {
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+            background: rgba(255,255,255,0.80);
+            border: 1px solid rgba(249,221,123,0.50);
+            color: #111;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            padding: 7px 16px;
+            border-radius: 20px;
+        }
+
+        .tip-row {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(234,231,220,0.40);
+            align-items: flex-start;
+        }
+
+        .tip-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .tip-row:first-child { padding-top: 0; }
+
+        .tip-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--gold);
+            flex-shrink: 0;
+            margin-top: 7px;
+            box-shadow: 0 0 8px rgba(201,168,76,0.6);
+        }
+
+        .tip-row p { font-size: 14px; color: var(--text-mid); line-height: 1.6; }
+        .tip-row strong { color: var(--text-dark); }
+
+        /* ════════════════════════════════════════════
+           STAGGERED FADE-UP
+        ════════════════════════════════════════════ */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(22px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card { animation: fadeUp 0.55s cubic-bezier(.22,.68,0,1.2) both; }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.12s; }
+        .stat-card:nth-child(3) { animation-delay: 0.19s; }
+        .stat-card:nth-child(4) { animation-delay: 0.26s; }
+
+        /* ════════════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════════════ */
+        @media (max-width: 1100px) {
+            .page-body { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .sidebar { display: grid; grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .banner-inner, .tab-nav, .page-body { padding: 0 20px; }
+            .welcome-left h1 { font-size: 2.3rem; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .service-grid { grid-template-columns: repeat(3, 1fr); }
+            .welcome-row { flex-direction: column; align-items: flex-start; }
+            .sidebar { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body data-chatbot-role="USER">
+
+<div th:replace="common/user-navbar :: userNavbar"></div>
+
+<!-- WELCOME BANNER -->
+<div class="welcome-banner">
+    <div class="banner-inner">
+        <div class="breadcrumb">HomeEase &nbsp;/&nbsp; <span>Dashboard</span></div>
+        <div class="welcome-row">
+            <div class="welcome-left">
+                <h1>Good to see you, <em th:text="${username}">User</em></h1>
+                <p>Manage your bookings and discover trusted professionals near you.</p>
+            </div>
+            <div class="welcome-date">
+                <div class="date-day" id="dateDay"></div>
+                <div class="date-rest" id="dateRest"></div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-nav">
+        <a href="/user/dashboard" class="active">Overview</a>
+        <a href="/user/bookings">My Bookings</a>
+        <a href="/user/active-services">Services</a>
+    </div>
+</div>
+
+<!-- PAGE BODY -->
+<div class="page-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-label">Total Bookings</div>
+                <div class="stat-icon-wrap">📋</div>
+            </div>
+            <div class="stat-value" th:text="${totalBookings}">0</div>
+            <div class="stat-sub">All time requests</div>
+        </div>
+        <div class="stat-card" onclick="window.location.href='/user/active-services'">
+            <div class="stat-top">
+                <div class="stat-label">Active Services</div>
+                <div class="stat-icon-wrap">⚡</div>
+            </div>
+            <div class="stat-value" th:text="${activeServices}">0</div>
+            <div class="stat-sub">Click to browse</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-label">Completed Jobs</div>
+                <div class="stat-icon-wrap">✅</div>
+            </div>
+            <div class="stat-value" th:text="${completedJobs}">0</div>
+            <div class="stat-sub">Successfully done</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-label">Pending Requests</div>
+                <div class="stat-icon-wrap">⏳</div>
+            </div>
+            <div class="stat-value" th:text="${pendingRequests}">0</div>
+            <div class="stat-sub">Awaiting response</div>
+        </div>
+    </div>
+
+    <!-- LEFT -->
+    <div>
+        <h2 class="section-head">Quick Actions</h2>
+        <div class="action-list">
+            <a href="/user/active-services" class="action-item primary">
+                <div class="action-icon">🔧</div>
+                <div class="action-text">
+                    <strong>Book a Service</strong>
+                    <span>Find verified professionals near you</span>
+                </div>
+                <span class="action-arrow">→</span>
+            </a>
+            <a href="/user/bookings" class="action-item">
+                <div class="action-icon">📁</div>
+                <div class="action-text">
+                    <strong>My Bookings</strong>
+                    <span>Track all your service requests</span>
+                </div>
+                <span class="action-arrow">→</span>
+            </a>
+            <a th:href="'https://wa.me/919824062047?text=Hello HomeEase, I am ' + ${username} + '. I need assistance.'"
+               class="action-item" target="_blank">
+                <div class="action-icon">💬</div>
+                <div class="action-text">
+                    <strong>WhatsApp Support</strong>
+                    <span>Get instant help from our team</span>
+                </div>
+                <span class="action-arrow">→</span>
+            </a>
+        </div>
+
+        <div class="services-section">
+            <h2 class="section-head">Browse by Category</h2>
+            <div class="service-grid">
+                <a th:href="@{/user/active-services/results(category='Electrician')}" class="service-tile">
+                    <span class="emoji">⚡</span><span class="name">Electrician</span>
+                </a>
+                <a th:href="@{/user/active-services/results(category='Plumber')}" class="service-tile">
+                    <span class="emoji">🚰</span><span class="name">Plumber</span>
+                </a>
+                <a th:href="@{/user/active-services/results(category='Cleaner')}" class="service-tile">
+                    <span class="emoji">🧹</span><span class="name">Cleaner</span>
+                </a>
+                <a th:href="@{/user/active-services/results(category='Painter')}" class="service-tile">
+                    <span class="emoji">🎨</span><span class="name">Painter</span>
+                </a>
+                <a th:href="@{/user/active-services/results(category='Carpenter')}" class="service-tile">
+                    <span class="emoji">🪚</span><span class="name">Carpenter</span>
+                </a>
+                <a href="/user/active-services" class="service-tile">
+                    <span class="emoji">➕</span><span class="name">View All</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="gold-card">
+            <h3>HomeEase Premium</h3>
+            <p>Priority bookings, exclusive discounts and a dedicated support agent — all in one plan.</p>
+            <span class="gold-badge">✦ Coming Soon</span>
+        </div>
+        <div class="sidebar-card">
+            <h3>Pro Tips</h3>
+            <div class="tip-row">
+                <div class="tip-dot"></div>
+                <p><strong>Use GPS Location</strong> — Find workers closest to your current position.</p>
+            </div>
+            <div class="tip-row">
+                <div class="tip-dot"></div>
+                <p><strong>Online Workers Only</strong> — Only available workers are shown to you.</p>
+            </div>
+            <div class="tip-row">
+                <div class="tip-dot"></div>
+                <p><strong>Rate After Service</strong> — Your rating helps others find the best workers.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="common/footer :: footer"></div>
+<script src="/js/script.js"></script>
+<script>
+    /* Date */
+    const d = new Date();
+    const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('dateDay').textContent  = String(d.getDate()).padStart(2,'0');
+    document.getElementById('dateRest').textContent = days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+    // Prevent back navigation
+    window.history.pushState(null, null, window.location.href);
+    window.addEventListener('popstate', function(event) {
+        window.location.replace("/");
+    });
+</script>
+
+<div th:replace="common/chatbot :: chatbot"></div>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>User Management | Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Theme & Navbar -->
+  <link rel="stylesheet" th:href="@{/css/theme.css}">
+  <link rel="stylesheet" th:href="@{/css/admin-navbar.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+
+  <style>
+    .users-page { padding: 40px 8%; background: var(--light-bg); min-height: 80vh; }
+    .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .page-header h2 { font-size: 28px; font-weight: 700; color: var(--black); }
+    .action-group { display: flex; gap: 10px; }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <div th:replace="common/admin-navbar :: adminNavbar"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="users-page">
+
+    <div class="page-header">
+      <div>
+        <h2>User Management</h2>
+        <p th:text="${#lists.size(allUsers)} + ' total users registered'"></p>
+      </div>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <form th:action="@{/admin/users}" method="get" class="he-search-bar">
+      <input type="text" name="search" th:value="${search}" class="he-input" placeholder="Search by name, city, or state...">
+      <button type="submit" class="he-btn he-btn-primary">Search</button>
+      <a th:if="${search != null}" th:href="@{/admin/users}" class="he-btn he-btn-secondary">Clear</a>
+    </form>
+
+    <!-- SUCCESS/ERROR MESSAGES -->
+    <div th:if="${successMsg}" class="he-alert he-alert-success" th:text="${successMsg}"></div>
+    <div th:if="${errorMsg}" class="he-alert he-alert-danger" th:text="${errorMsg}"></div>
+
+    <!-- USERS TABLE -->
+    <div class="he-table-wrapper">
+      <table class="he-table he-table-responsive">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Mobile</th>
+            <th>City</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="u : ${allUsers}">
+            <td data-label="ID" th:text="'#' + ${u.id}"></td>
+            <td data-label="User">
+               <div style="font-weight: 700;" th:text="${u.name}"></div>
+               <div style="font-size: 11px; color: var(--muted);" th:text="${u.publicUserId}"></div>
+            </td>
+            <td data-label="Email" th:text="${u.email}"></td>
+            <td data-label="Mobile" th:text="${u.mobile}"></td>
+            <td data-label="City" th:text="${u.city}"></td>
+            <td data-label="Status">
+              <span th:if="${u.enabled}" class="he-badge he-badge-active">Enabled</span>
+              <span th:if="${!u.enabled}" class="he-badge he-badge-disabled">Disabled</span>
+            </td>
+            <td data-label="Actions">
+              <div class="action-group">
+                <!-- Toggle Enable/Disable -->
+                <form th:action="${u.enabled ? '/admin/users/disable' : '/admin/users/enable'}" method="post">
+                  <input type="hidden" name="id" th:value="${u.id}" />
+                  <button type="submit" th:class="${u.enabled ? 'he-btn he-btn-danger he-btn-sm' : 'he-btn he-btn-success he-btn-sm'}"
+                          th:text="${u.enabled ? 'Disable' : 'Enable'}">
+                  </button>
+                </form>
+
+                <!-- Delete -->
+                <form th:action="@{/admin/users/delete}" method="post" onsubmit="return confirm('Are you sure you want to delete this user permanently?')">
+                  <input type="hidden" name="id" th:value="${u.id}" />
+                  <button type="submit" class="he-btn he-btn-secondary he-btn-sm" style="color: var(--red); border-color: var(--red-border);">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(allUsers)}">
+            <td colspan="7" style="text-align: center; padding: 40px; color: var(--muted);">No users found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <div th:replace="common/footer :: footer"></div>
+
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

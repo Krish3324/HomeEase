@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Dashboard | HomeEase</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --surface2: #F1F5F9;
+            --border: #E2E8F0;
+            --accent: #F59E0B;
+            --accent2: #D97706;
+            --text: #0F172A;
+            --muted: #64748B;
+            --green: #10B981;
+            --red: #EF4444;
+            --gold: #FBBF24;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ═══════════ SIDEBAR ═══════════ */
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            padding: 28px 24px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--gold), var(--accent));
+            color: #111;
+            font-size: 16px;
+            font-weight: 800;
+            box-shadow: 0 10px 22px rgba(251, 191, 36, 0.2);
+        }
+
+        .sidebar-logo h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .sidebar-logo p {
+            font-size: 11px;
+            color: var(--muted);
+            margin: 4px 0 0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .worker-card {
+            margin: 20px 16px;
+            background: var(--surface2);
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .worker-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .worker-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .worker-category {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .status-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-online {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-online:hover {
+            background: rgba(34, 197, 94, 0.25);
+        }
+
+        .btn-offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-offline:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-green {
+            background: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        .dot-red {
+            background: var(--red);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+            }
+
+            50% {
+                opacity: 0.8;
+                box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+            }
+        }
+
+        .sidebar-nav {
+            padding: 10px 12px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            padding: 16px 12px 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(245, 197, 24, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(245, 197, 24, 0.2);
+        }
+
+        .sidebar-bottom {
+            padding: 16px 12px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--muted);
+            text-decoration: none;
+            transition: all 0.2s;
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--red);
+        }
+
+        /* ═══════════ MAIN ═══════════ */
+        .main {
+            margin-left: 260px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        }
+
+        .topbar-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A0A0A;
+        }
+
+        .topbar-title span {
+            color: #475569;
+            font-weight: 500;
+            font-size: 13px;
+            margin-left: 12px;
+        }
+
+        .content {
+            padding: 28px;
+        }
+
+        /* ═══════════ STATS ═══════════ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.2s;
+            min-height: 180px;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(245, 197, 24, 0.1);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .icon-yellow {
+            background: rgba(245, 197, 24, 0.15);
+        }
+
+        .icon-green {
+            background: rgba(34, 197, 94, 0.15);
+        }
+
+        .icon-red {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .stat-value {
+            font-family: 'Inter', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+            color: #0B0B0B;
+        }
+
+        .stat-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #64748B;
+            margin-top: 6px;
+        }
+
+        /* ═══════════ CHARTS ═══════════ */
+        .charts-row {
+            display: grid;
+            grid-template-columns: minmax(320px, 1.2fr) minmax(300px, 0.9fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            min-height: 320px;
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .chart-card canvas {
+            width: 100%;
+            max-height: 260px;
+            margin: 0 auto;
+        }
+
+        .chart-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #111827;
+            letter-spacing: 0.02em;
+        }
+
+        /* ═══════════ BOOKINGS TABLE ═══════════ */
+        .bookings-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .bookings-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .bookings-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-tab {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .filter-tab.active,
+        .filter-tab:hover {
+            background: rgba(245, 197, 24, 0.12);
+            color: var(--accent);
+            border-color: rgba(245, 197, 24, 0.3);
+        }
+
+        .bookings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .bookings-table th {
+            text-align: left;
+            padding: 12px 20px;
+            color: var(--muted);
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bookings-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .bookings-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .bookings-table tr:hover td {
+            background: var(--surface2);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-PENDING {
+            background: rgba(245, 197, 24, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 197, 24, 0.3);
+        }
+
+        .badge-CONFIRMED {
+            background: rgba(245, 197, 24, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 197, 24, 0.3);
+        }
+
+        .badge-COMPLETED {
+            background: rgba(34, 197, 120, 0.15);
+            color: #059669;
+            border: 1px solid rgba(34, 197, 120, 0.3);
+        }
+
+        .badge-IN_PROGRESS {
+            background: rgba(59, 130, 246, 0.15);
+            color: #2563EB;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-CANCELLED {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .btn-accept {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-decline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-complete {
+            background: rgba(245, 197, 24, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 197, 24, 0.3);
+        }
+
+        .btn-accept:hover {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-decline:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-complete:hover {
+            background: rgba(245, 197, 24, 0.3);
+        }
+
+        .user-info {
+            font-weight: 600;
+        }
+
+        .user-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        /* ═══════════ TOAST ═══════════ */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        .toast.success {
+            border-color: rgba(34, 197, 94, 0.4);
+            color: var(--green);
+        }
+
+        .toast.error {
+            border-color: rgba(239, 68, 68, 0.4);
+            color: var(--red);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ═══════════ OTP MODAL ═══════════ */
+        .otp-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .otp-overlay.open {
+            display: flex;
+        }
+
+        .otp-modal {
+            background: #fff;
+            border-radius: 20px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+            animation: modalPop 0.3s cubic-bezier(.22, .68, 0, 1.2);
+            position: relative;
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.88) translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .otp-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #aaa;
+            background: none;
+            border: none;
+        }
+
+        .otp-modal-close:hover {
+            color: #333;
+        }
+
+        .otp-modal-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(245, 197, 24, 0.12);
+            border: 2px solid rgba(245, 197, 24, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 20px;
+        }
+
+        .otp-modal h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            text-align: center;
+            color: #0F172A;
+            margin-bottom: 6px;
+        }
+
+        .otp-modal p {
+            text-align: center;
+            font-size: 13px;
+            color: #64748B;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .otp-input-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .otp-digit {
+            width: 52px;
+            height: 60px;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            font-family: 'Syne', sans-serif;
+            color: #0F172A;
+            background: #F8FAFC;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            caret-color: transparent;
+        }
+
+        .otp-digit:focus {
+            border-color: #F59E0B;
+            background: #fff;
+        }
+
+        .otp-digit.filled {
+            border-color: #10B981;
+            background: #f0fdf4;
+        }
+
+        .otp-digit.error-state {
+            border-color: #EF4444;
+            background: #fef2f2;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            20% {
+                transform: translateX(-6px)
+            }
+
+            40% {
+                transform: translateX(6px)
+            }
+
+            60% {
+                transform: translateX(-4px)
+            }
+
+            80% {
+                transform: translateX(4px)
+            }
+        }
+
+        .otp-error-msg {
+            text-align: center;
+            font-size: 13px;
+            color: #EF4444;
+            font-weight: 600;
+            min-height: 20px;
+            margin-bottom: 16px;
+        }
+
+        .otp-submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .otp-submit-btn:hover {
+            background: linear-gradient(135deg, #D97706, #B45309);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(245, 197, 24, 0.35);
+        }
+
+        .otp-submit-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .otp-info-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #92400e;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        /* ════════════════════════════════════════════════════════
+           VOICE WIDGET — uneducated worker friendly
+           - Auto-starts when pending bookings present
+           - Big clear "Shuru Karo / Band Karo" button
+           - Banner stays visible while voice is ON
+           - Step tracker shows current step
+        ════════════════════════════════════════════════════════ */
+        .voice-widget {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+            max-width: 310px;
+        }
+
+        /* Main banner — visible while voice is active */
+        .voice-main-banner {
+            display: none;
+            background: #1B2A6B;
+            color: #fff;
+            border-radius: 18px;
+            padding: 16px 18px;
+            width: 100%;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+            animation: bannerSlide 0.35s ease;
+        }
+
+        @keyframes bannerSlide {
+            from {
+                transform: translateY(12px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .vmb-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .vmb-ring {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .vmb-ring.ringing {
+            animation: ringPulse 1.2s infinite;
+        }
+
+        @keyframes ringPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+            }
+        }
+
+        .vmb-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .vmb-subtitle {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 2px;
+        }
+
+        .vmb-msg {
+            font-size: 13px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+
+        .vmb-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .vmb-step {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .vmb-step-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .vmb-step-dot.done {
+            background: #10B981;
+        }
+
+        .vmb-step-dot.current {
+            background: #F59E0B;
+            color: #000;
+            animation: stepBeat 1.5s infinite;
+        }
+
+        @keyframes stepBeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.18);
+            }
+        }
+
+        .vmb-step-text {
+            line-height: 1.35;
+        }
+
+        .vmb-step-text.current {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Language bar */
+        .lang-bar {
+            display: flex;
+            gap: 5px;
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 30px;
+            padding: 4px 7px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .lang-pill {
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: none;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            background: transparent;
+            color: #64748B;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .lang-pill.active {
+            background: #1B2A6B;
+            color: #fff;
+        }
+
+        /* Control row */
+        .voice-ctrl-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* BIG start / stop button */
+        .vg-main-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 30px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.25s;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .vg-main-btn.state-start {
+            background: #1B2A6B;
+            color: #fff;
+        }
+
+        .vg-main-btn.state-start:hover {
+            background: #263d96;
+            transform: translateY(-1px);
+        }
+
+        .vg-main-btn.state-stop {
+            background: #EF4444;
+            color: #fff;
+            animation: redPulse 1.6s infinite;
+        }
+
+        @keyframes redPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 4px 22px rgba(239, 68, 68, 0.65);
+            }
+        }
+
+        .vg-main-btn.state-stop:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* Small helper buttons */
+        .voice-helper-btn {
+            padding: 9px 15px;
+            border-radius: 20px;
+            border: 1px solid #E2E8F0;
+            background: #fff;
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .voice-helper-btn:hover {
+            background: #F1F5F9;
+        }
+
+        .voice-unsupported {
+            display: none;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #9a3412;
+            max-width: 260px;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .otp-digit {
+                width: 42px;
+                height: 52px;
+                font-size: 20px;
+            }
+
+            .otp-modal {
+                padding: 28px 20px;
+            }
+
+            .voice-widget {
+                bottom: 14px;
+                left: 14px;
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+
+<body data-chatbot-role="WORKER">
+
+    <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand-row">
+                <span class="brand-icon">HE</span>
+                <div>
+                    <h1>HomeEase</h1>
+                    <p>Worker Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="worker-card">
+            <div class="worker-avatar" th:text="${worker != null ? worker.name.substring(0,1).toUpperCase() : 'W'}">W
+            </div>
+            <div class="worker-name" th:text="${worker != null ? worker.name : 'Worker'}">Name</div>
+            <div class="worker-category" th:text="${worker != null ? worker.category : ''}">Category</div>
+            <div class="worker-category" style="margin-top:4px;font-weight:600;color:var(--gold);">
+                <i class="fas fa-star" style="font-size:10px;"></i>
+                <span th:text="${worker != null ? #numbers.formatDecimal(worker.rating,1,1) : '0.0'}">0.0</span>
+                <span style="color:var(--muted);font-size:10px;font-weight:400;">Average Rating</span>
+            </div>
+            <div class="status-toggle">
+                <div class="online-dot" th:classappend="${worker != null and worker.online} ? 'dot-green' : 'dot-red'">
+                </div>
+                <span style="font-size:12px;color:var(--muted);"
+                    th:text="${worker != null and worker.online} ? 'Online' : 'Offline'">Offline</span>
+                <button class="toggle-btn btn-online" onclick="goOnline()">Go Online</button>
+                <button class="toggle-btn btn-offline" onclick="goOffline()">Go Offline</button>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a href="/worker/dashboard" class="nav-item active"><span>🏠</span> Dashboard</a>
+            <a href="/worker/profile" class="nav-item"><span>👤</span> Profile</a>
+            <a href="/worker/earnings" class="nav-item"><span>💰</span> Earnings</a>
+            <a href="/worker/quote-requests" class="nav-item"><span>📩</span> Quote Requests</a>
+            <a href="/worker/settings" class="nav-item"><span>⚙️</span> Settings</a>
+            <form action="/logout" method="post" style="margin: 2px 0;">
+                <button type="submit" class="nav-item logout-btn" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;"><span>⇤</span> Logout</button>
+            </form>
+        </nav>
+    </aside>
+
+    <!-- ═══════════════════════ MAIN ═══════════════════════ -->
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-title">
+                Dashboard
+                <span>Welcome back, <span th:text="${worker != null ? worker.name : ''}"></span></span>
+            </div>
+        </div>
+
+        <div th:if="${successMsg}" style="padding:10px 32px;margin-bottom:-20px;">
+            <div
+                style="background:#e8f5e9;color:#2e7d32;padding:14px;border-radius:12px;border:1px solid #bbf7d0;font-weight:600;">
+                ✅ <span th:text="${successMsg}">Success</span>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- STATS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-yellow">📋</div>
+                    <div class="stat-value" th:text="${totalCount}">0</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-yellow">⏳</div>
+                    <div class="stat-value" th:text="${pendingCount}">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#d9770615;color:#d97706;">⚡</div>
+                    <div class="stat-value" th:text="${inProgressCount != null ? inProgressCount : 0}">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">✅</div>
+                    <div class="stat-value" th:text="${completedCount}">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-red">✕</div>
+                    <div class="stat-value" th:text="${cancelledCount}">0</div>
+                    <div class="stat-label">Cancelled</div>
+                </div>
+            </div>
+
+            <!-- CHARTS -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-title">Booking Status Overview</div>
+                    <canvas id="pieChart" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Booking Breakdown</div>
+                    <canvas id="barChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- BOOKINGS TABLE -->
+            <div class="bookings-card">
+                <div class="bookings-header">
+                    <span class="bookings-title">All Bookings</span>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterBookings('ALL',this)">All</button>
+                        <button class="filter-tab" onclick="filterBookings('PENDING',this)">Pending</button>
+                        <button class="filter-tab" onclick="filterBookings('CONFIRMED',this)">Confirmed</button>
+                        <button class="filter-tab" onclick="filterBookings('IN_PROGRESS',this)">In Progress</button>
+                        <button class="filter-tab" onclick="filterBookings('COMPLETED',this)">Completed</button>
+                        <button class="filter-tab" onclick="filterBookings('CANCELLED',this)">Cancelled</button>
+                    </div>
+                </div>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(bookings)}">
+                    <div class="icon">🔧</div>
+                    <p>No bookings yet. Go online to start receiving bookings.</p>
+                </div>
+
+                <table class="bookings-table" th:if="${!#lists.isEmpty(bookings)}" id="bookingsTable">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Date &amp; Time</th>
+                            <th>Location</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="booking : ${bookings}" th:data-status="${booking.status}">
+                            <td>
+                                <div class="user-info" th:text="${booking.user.name}">User</div>
+                                <div class="user-sub" th:text="${booking.user.mobile}">Mobile</div>
+                            </td>
+                            <td>
+                                <div th:text="${booking.bookingDate}">Date</div>
+                                <div class="user-sub" th:text="${booking.bookingTime}">Time</div>
+                            </td>
+                            <td>
+                                <div th:text="${booking.city != null ? booking.city : '—'}">City</div>
+                                <div class="user-sub" th:text="${booking.pincode != null ? booking.pincode : ''}">Pin
+                                </div>
+                            </td>
+                            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                th:text="${booking.description}">Desc</td>
+                            <td>
+                                <span class="status-badge" th:classappend="'badge-' + ${booking.status}"
+                                    th:text="${booking.status}">PENDING</span>
+                            </td>
+                            <td>
+                                <div class="action-btns">
+                                    <button th:if="${booking.status.name() == 'PENDING'}" class="action-btn btn-accept"
+                                        th:onclick="'acceptBooking(' + ${booking.id} + ',this)'">
+                                        ✓ Accept
+                                    </button>
+                                    <button th:if="${booking.status.name() == 'PENDING'}" class="action-btn btn-decline"
+                                        th:onclick="'declineBooking(' + ${booking.id} + ',this)'">
+                                        ✕ Decline
+                                    </button>
+                                    <button th:if="${booking.status.name() == 'CONFIRMED'}" class="action-btn"
+                                        style="background:rgba(16,185,129,0.15);color:#059669;border:1px solid rgba(16,185,129,0.3);"
+                                        th:onclick="'startWork(' + ${booking.id} + ', this)'">
+                                        ▶ Start Work
+                                    </button>
+                                    <button th:if="${booking.status.name() == 'IN_PROGRESS'}" class="action-btn"
+                                        style="background:rgba(217,119,6,0.15);color:#D97706;border:1px solid rgba(217,119,6,0.3);"
+                                        th:onclick="'openUploadModal(' + ${booking.id} + ')'">
+                                        📸 Upload Proof
+                                    </button>
+                                    <button th:if="${booking.status.name() == 'COMPLETED'}" class="action-btn"
+                                        style="background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);"
+                                        th:onclick="'viewProofs(' + ${booking.id} + ')'">
+                                        🖼 View Proofs
+                                    </button>
+                                    <a th:if="${booking.status.name() == 'CONFIRMED' or booking.status.name() == 'IN_PROGRESS' or booking.status.name() == 'COMPLETED'}"
+                                        th:href="@{/worker/chat(bookingId=${booking.id})}" class="action-btn"
+                                        style="background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+                                        💬 Chat
+                                    </a>
+                                    <button th:if="${booking.status.name() == 'IN_PROGRESS' and !#lists.isEmpty(booking.workProofs)}"
+                                        class="action-btn btn-complete"
+                                        th:onclick="'openOtpModal(' + ${booking.id} + ')'">
+                                        🔐 Complete
+                                    </button>
+                                    <button th:if="${booking.status.name() == 'IN_PROGRESS' and #lists.isEmpty(booking.workProofs)}"
+                                        class="action-btn"
+                                        style="background:rgba(100,116,139,0.1);color:#64748b;border:1px solid rgba(100,116,139,0.2);cursor:not-allowed;"
+                                        title="Please upload work proof images first"
+                                        onclick="showToast('Please upload work proof images first!','error')">
+                                        🔐 Complete
+                                    </button>
+                                    <a th:if="${booking.status.name() == 'CONFIRMED' or booking.status.name() == 'IN_PROGRESS'}"
+                                        th:href="'https://www.google.com/maps/dir/?api=1&destination='+${booking.latitude}+','+${booking.longitude}"
+                                        target="_blank" class="action-btn"
+                                        style="background:rgba(59,130,246,0.15);color:#3B82F6;border:1px solid rgba(59,130,246,0.3);">
+                                        📍 Track
+                                    </a>
+                                    <button class="action-btn"
+                                        style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);"
+                                        th:onclick="openReportModal([[${booking.user.email}]],'USER',[[${booking.id}]],[[${booking.user.name}]])">
+                                        ⚠️ Report
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ PROOF MODALS ═══════════════════════ -->
+    <div class="otp-overlay" id="uploadOverlay" onclick="if(event.target===this) closeUploadModal()">
+        <div class="otp-modal">
+            <button class="otp-modal-close" onclick="closeUploadModal()">✕</button>
+            <div class="otp-modal-icon">📸</div>
+            <h2>Upload Work Proof</h2>
+            <p>Select images of the completed work to prevent any future disputes.</p>
+            <form id="uploadForm" onsubmit="submitUpload(event)">
+                <input type="hidden" id="uploadBookingId">
+                <div style="margin-bottom: 20px;">
+                    <input type="file" id="proofImages" multiple accept="image/*" class="otp-digit" style="width: 100%; height: auto; padding: 15px; font-size: 14px; display: block;" onchange="this.classList.add('filled')">
+                </div>
+                <button type="submit" class="otp-submit-btn" id="uploadSubmitBtn">
+                    Upload Images
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="otp-overlay" id="galleryOverlay" onclick="if(event.target===this) closeGalleryModal()">
+        <div class="otp-modal" style="max-width: 600px;">
+            <button class="otp-modal-close" onclick="closeGalleryModal()">✕</button>
+            <div class="otp-modal-icon">🖼</div>
+            <h2>Work Proof Gallery</h2>
+            <p>Images uploaded for this booking.</p>
+            <div id="galleryContent" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 400px; overflow-y: auto; padding: 10px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <!-- Images will be injected here -->
+            </div>
+            <button class="otp-submit-btn" onclick="closeGalleryModal()" style="margin-top: 20px;">
+                Close Gallery
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ OTP MODAL ═══════════════════════ -->
+    <div class="otp-overlay" id="otpOverlay" onclick="handleOverlayClick(event)">
+        <div class="otp-modal" id="otpModal">
+            <button class="otp-modal-close" onclick="closeOtpModal()">✕</button>
+            <div class="otp-modal-icon">🔐</div>
+            <h2>Enter OTP to Complete</h2>
+            <div class="otp-info-box">⚠️ Ask the customer for the code and enter it below.</div>
+            <div class="otp-input-container" style="position: relative; margin-bottom: 20px;">
+                <!-- Hidden input for mobile keyboard and easy typing -->
+                <input type="text" id="otpHiddenInput" inputmode="numeric" maxlength="6" 
+                       style="position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px;">
+                <div class="otp-input-row" id="otpInputRow" onclick="document.getElementById('otpHiddenInput').focus()">
+                    <input class="otp-digit" maxlength="1" type="text" readonly id="d0">
+                    <input class="otp-digit" maxlength="1" type="text" readonly id="d1">
+                    <input class="otp-digit" maxlength="1" type="text" readonly id="d2">
+                    <input class="otp-digit" maxlength="1" type="text" readonly id="d3">
+                    <input class="otp-digit" maxlength="1" type="text" readonly id="d4">
+                    <input class="otp-digit" maxlength="1" type="text" readonly id="d5">
+                </div>
+            </div>
+            <div class="otp-error-msg" id="otpErrorMsg"></div>
+            <button class="otp-submit-btn" id="otpSubmitBtn" onclick="submitOtp()" disabled>
+                Verify &amp; Complete Booking
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+     VOICE GUIDE WIDGET  —  bottom left
+     AUTO-STARTS if pending bookings exist on page load.
+     Big "Shuru Karo" (▶) / "Band Karo" (⏹) button.
+     Banner stays visible + step indicator glows on current step.
+═══════════════════════════════════════════════════════════════════ -->
+    <div class="voice-widget" id="voiceWidget" th:if="${speakerGuideEnabled}" style="display: none;" data-enabled="true">
+
+        <!-- Speaking banner (visible while voice is ON) -->
+        <div class="voice-main-banner" id="voiceMainBanner">
+            <div class="vmb-header">
+                <div class="vmb-ring" id="vmbRing">🔔</div>
+                <div>
+                    <div class="vmb-title" id="vmbTitle">New Booking</div>
+                    <div class="vmb-subtitle" id="vmbSubtitle">Suniye aur button dabao</div>
+                </div>
+            </div>
+            <div class="vmb-msg" id="vmbMsg">...</div>
+            <div class="vmb-steps" id="vmbSteps">
+                <div class="vmb-step">
+                    <div class="vmb-step-dot" id="vsd1">1</div>
+                    <div class="vmb-step-text" id="vst1">—</div>
+                </div>
+                <div class="vmb-step">
+                    <div class="vmb-step-dot" id="vsd2">2</div>
+                    <div class="vmb-step-text" id="vst2">—</div>
+                </div>
+                <div class="vmb-step">
+                    <div class="vmb-step-dot" id="vsd3">3</div>
+                    <div class="vmb-step-text" id="vst3">—</div>
+                </div>
+                <div class="vmb-step">
+                    <div class="vmb-step-dot" id="vsd4">4</div>
+                    <div class="vmb-step-text" id="vst4">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language pills -->
+        <div class="lang-bar">
+            <button class="lang-pill active" id="langBtn-en" onclick="VG.setLang('en')">EN</button>
+            <button class="lang-pill" id="langBtn-hi" onclick="VG.setLang('hi')">हिंदी</button>
+            <button class="lang-pill" id="langBtn-gu" onclick="VG.setLang('gu')">ગુજ</button>
+        </div>
+
+        <div class="voice-unsupported" id="voiceUnsupported">
+            ⚠️ Voice not supported. Please use Chrome or Edge browser.
+        </div>
+
+        <!-- Control buttons -->
+        <div class="voice-ctrl-row">
+            <!-- BIG main button -->
+            <button class="vg-main-btn state-start" id="vgMainBtn" onclick="VG.toggleLoop()">
+                <span id="vgMainIcon">▶</span>
+                <span id="vgMainLabel">Shuru Karo</span>
+            </button>
+            <button class="voice-helper-btn" onclick="VG.showHelp()">
+                ❓ <span id="helpLabel">Help</span>
+            </button>
+            <button class="voice-helper-btn" onclick="VG.repeat()">
+                🔁 <span id="repeatLabel">Repeat</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════════════ -->
+    <script th:inline="javascript">
+        const pending = /*[[${pendingCount}]]*/   0;
+        const confirmed = /*[[${confirmedCount}]]*/ 0;
+        const inProgress = /*[[${inProgressCount}]]*/ 0;
+        const completed = /*[[${completedCount}]]*/ 0;
+        const cancelled = /*[[${cancelledCount}]]*/ 0;
+
+        /* ── CHARTS ── */
+        try {
+            new Chart(document.getElementById('pieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Confirmed', 'In Progress', 'Completed', 'Cancelled'],
+                    datasets: [{
+                        data: [pending, confirmed, inProgress, completed, cancelled],
+                        backgroundColor: [
+                            '#E2E8F0', // Pending
+                            '#10B981', // Confirmed (Green)
+                            '#F59E0B', // In Progress (Orange/Yellow)
+                            '#8B5CF6', // Completed (Purple)
+                            '#EF4444'  // Cancelled (Red)
+                        ],
+                        borderColor: '#fff', borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#64748B', font: { size: 12 } } } } }
+            });
+            new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+                    datasets: [{
+                        label: 'Bookings', data: [pending, confirmed, completed, cancelled],
+                        backgroundColor: ['rgba(245,158,11,0.7)', 'rgba(245,158,11,0.7)', 'rgba(16,185,129,0.7)', 'rgba(239,68,68,0.7)'],
+                        borderRadius: 8, borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true, plugins: { legend: { display: false } },
+                    scales: { x: { ticks: { color: '#64748B' }, grid: { color: '#E2E8F0' } }, y: { ticks: { color: '#64748B', stepSize: 1 }, grid: { color: '#E2E8F0' }, beginAtZero: true } }
+                }
+            });
+        } catch (e) {
+            console.error("Chart initialization failed:", e);
+        }
+
+        /* ── FILTER ── */
+        function filterBookings(status, btn) {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('#bookingsTable tbody tr').forEach(row => {
+                row.style.display = (status === 'ALL' || row.getAttribute('data-status') === status) ? '' : 'none';
+            });
+        }
+
+        /* ── ACCEPT ── */
+        function acceptBooking(id, btn) {
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers = {};
+            if (header && token) headers[header] = token;
+
+            fetch('/worker/bookings/accept?bookingId=' + id, { 
+                method: 'POST',
+                headers: headers
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast('Booking accepted! OTP sent to customer.', 'success');
+                        VG.stopLoop();
+                        VG.speak('accepted');
+                        VG.speakAfterDelay('completeGuide', 4200);
+                        setTimeout(() => location.reload(), 1200);
+                    } else { showToast(data.message || 'Error accepting booking', 'error'); }
+                })
+                .catch(() => showToast('Something went wrong', 'error'));
+        }
+
+        /* ── DECLINE ── */
+        function declineBooking(id, btn) {
+            if (!confirm('Are you sure you want to decline this booking?')) return;
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers = {};
+            if (header && token) headers[header] = token;
+
+            fetch('/worker/bookings/decline?bookingId=' + id, { 
+                method: 'POST',
+                headers: headers
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast('Booking declined.', 'error');
+                        VG.stopLoop();
+                        VG.speak('declined');
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                });
+        }
+
+        /* ── OTP MODAL ── */
+        let currentBookingId = null;
+        function openOtpModal(bookingId) {
+            currentBookingId = bookingId;
+            clearOtpInputs();
+            document.getElementById('otpErrorMsg').textContent = '';
+            document.getElementById('otpOverlay').classList.add('open');
+            setTimeout(() => { 
+                const hidden = document.getElementById('otpHiddenInput');
+                hidden.focus(); 
+                VG.stopLoop(); 
+                VG.speak('otpPrompt'); 
+            }, 200);
+        }
+        function closeOtpModal() {
+            document.getElementById('otpOverlay').classList.remove('open');
+            currentBookingId = null; clearOtpInputs();
+        }
+        function handleOverlayClick(e) { if (e.target === document.getElementById('otpOverlay')) closeOtpModal(); }
+        function clearOtpInputs() {
+            document.getElementById('otpHiddenInput').value = '';
+            for (let i = 0; i < 6; i++) { const el = document.getElementById('d' + i); el.value = ''; el.classList.remove('filled', 'error-state'); }
+            updateSubmitBtn();
+        }
+
+        document.getElementById('otpHiddenInput').addEventListener('input', function(e) {
+            const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+            e.target.value = val;
+            
+            for (let i = 0; i < 6; i++) {
+                const el = document.getElementById('d' + i);
+                el.value = val[i] || '';
+                el.classList.toggle('filled', !!el.value);
+                el.classList.remove('error-state');
+            }
+            updateSubmitBtn();
+            document.getElementById('otpErrorMsg').textContent = '';
+        });
+        function updateSubmitBtn() {
+            let full = true; for (let i = 0; i < 6; i++) { if (!document.getElementById('d' + i).value) { full = false; break; } }
+            document.getElementById('otpSubmitBtn').disabled = !full;
+        }
+        function getOtpValue() { let o = ''; for (let i = 0; i < 6; i++) o += document.getElementById('d' + i).value; return o; }
+        function showOtpError(msg) {
+            document.getElementById('otpErrorMsg').textContent = msg;
+            for (let i = 0; i < 6; i++) document.getElementById('d' + i).classList.add('error-state');
+            setTimeout(() => { clearOtpInputs(); document.getElementById('d0').focus(); }, 700);
+        }
+        function submitOtp() {
+            const otp = getOtpValue(); if (otp.length !== 6) return;
+            const btn = document.getElementById('otpSubmitBtn'); btn.disabled = true; btn.textContent = 'Verifying...';
+            
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers = {};
+            if (header && token) headers[header] = token;
+
+            fetch('/worker/bookings/verify-otp?bookingId=' + currentBookingId + '&otp=' + otp, { 
+                method: 'POST',
+                headers: headers
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') { 
+                        closeOtpModal(); 
+                        showToast('✅ OTP verified! Booking completed successfully.', 'success'); 
+                        try { VG.speak('otpSuccess'); } catch(e) {}
+                        setTimeout(() => location.reload(), 1200); 
+                    }
+                    else { showOtpError(data.message || '❌ Incorrect OTP. Please try again.'); try { VG.speak('otpError'); } catch(e) {} btn.disabled = false; btn.textContent = 'Verify & Complete Booking'; }
+                })
+                .catch(() => { showOtpError('Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Verify & Complete Booking'; });
+        }
+
+        /* ── WORK PROOF JS ── */
+        function startWork(id, btn) {
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = 'Starting...';
+            }
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers = {};
+            if (header && token) headers[header] = token;
+
+            fetch('/worker/bookings/start?bookingId=' + id, { 
+                method: 'POST',
+                headers: headers
+            })
+            .then(async r => {
+                const isJson = r.headers.get('content-type')?.includes('application/json');
+                const data = isJson ? await r.json() : null;
+                
+                if (!r.ok) {
+                    const msg = (data && data.message) ? data.message : 'Error ' + r.status;
+                    throw new Error(msg);
+                }
+                return data;
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('Work started!', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.message || 'Error starting work', 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '▶ Start Work';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Failed: ' + err.message, 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '▶ Start Work';
+                }
+            });
+        }
+
+        function openUploadModal(id) {
+            document.getElementById('uploadBookingId').value = id;
+            document.getElementById('uploadOverlay').classList.add('open');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadOverlay').classList.remove('open');
+            document.getElementById('uploadForm').reset();
+            document.getElementById('proofImages').classList.remove('filled');
+        }
+
+        function submitUpload(e) {
+            e.preventDefault();
+            const id = document.getElementById('uploadBookingId').value;
+            const files = document.getElementById('proofImages').files;
+            if (files.length === 0) return alert('Please select images');
+
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const headers = {};
+            if (header && token) headers[header] = token;
+
+            const formData = new FormData();
+            formData.append('bookingId', id);
+            for (let i = 0; i < files.length; i++) formData.append('images', files[i]);
+
+            const btn = document.getElementById('uploadSubmitBtn');
+            btn.disabled = true; btn.textContent = 'Uploading...';
+
+            fetch('/worker/bookings/upload-proof', { 
+                method: 'POST', 
+                headers: headers,
+                body: formData 
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast('Images uploaded successfully!', 'success');
+                        closeUploadModal();
+                        setTimeout(() => location.reload(), 800);
+                    } else {
+                        alert('Upload failed: ' + data.message);
+                        btn.disabled = false; btn.textContent = 'Upload Images';
+                    }
+                });
+        }
+
+        function viewProofs(id) {
+            fetch('/worker/bookings/proofs?bookingId=' + id)
+                .then(r => r.json())
+                .then(data => {
+                    const box = document.getElementById('galleryContent');
+                    box.innerHTML = '';
+                    if (data.length === 0) {
+                        box.innerHTML = '<p style="grid-column: span 3; text-align: center; color: var(--muted); padding: 20px;">No images found.</p>';
+                    } else {
+                        data.forEach(p => {
+                            const img = document.createElement('img');
+                            img.src = p.url;
+                            img.style.width = '100%';
+                            img.style.height = '120px';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '8px';
+                            box.appendChild(img);
+                        });
+                    }
+                    document.getElementById('galleryOverlay').classList.add('open');
+                });
+        }
+
+        function closeGalleryModal() {
+            document.getElementById('galleryOverlay').classList.remove('open');
+        }
+
+        /* ── GO ONLINE / OFFLINE ── */
+        function goOnline() {
+            fetch('/worker/go-online', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+                .then(r => r.json()).then(() => { showToast('You are now Online!', 'success'); VG.stopLoop(); VG.speak('goOnline'); setTimeout(() => location.reload(), 800); });
+        }
+        function goOffline() {
+            fetch('/worker/go-offline', { method: 'POST' }).then(r => r.json())
+                .then(() => { showToast('You are now Offline.', 'error'); VG.stopLoop(); VG.speak('goOffline'); setTimeout(() => location.reload(), 800); });
+        }
+
+        /* ── TOAST ── */
+        function showToast(msg, type) {
+            const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type; t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3500);
+        }
+
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', () => window.location.replace('/'));
+
+        /* ── LIVE LOCATION ── */
+        if ('geolocation' in navigator) {
+            navigator.geolocation.watchPosition(pos => {
+                const p = new URLSearchParams(); p.append('lat', pos.coords.latitude); p.append('lng', pos.coords.longitude);
+                fetch('/worker/update-location', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() }).catch(e => console.error(e));
+            }, err => console.warn(err), { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 });
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           VOICE GUIDE — VG
+           ★ AUTO-STARTS if pending > 0 on page load (no button press needed)
+           ★ Big "Shuru Karo / Band Karo" button
+           ★ Banner always visible while speaking
+           ★ Friendly short sentences, calm tone
+           ★ Step tracker highlights where worker is
+        ═══════════════════════════════════════════════════════════════════ */
+        const VG = (() => {
+
+            /* ══ ALL MESSAGES — 3 languages ══ */
+            const msgs = {
+                en: {
+                    welcome: "Welcome. You are on the dashboard.",
+                    newBooking: "New booking has arrived. Look at the table below. Press the green Accept button.",
+                    accepted: "Well done! Booking accepted. OTP is sent to customer. Now go to the customer.",
+                    completeGuide: "Job done? Now press the yellow Complete button in the table.",
+                    declined: "Booking declined.",
+                    otpPrompt: "Ask the customer for their 6 digit code. Enter it one by one in the boxes.",
+                    otpSuccess: "Correct code! Job is complete. Very good!",
+                    otpError: "Wrong code. Do not worry. Ask the customer again. Then try once more.",
+                    goOnline: "You are now online. Bookings will start coming.",
+                    goOffline: "You are now offline.",
+                    help: "Step one. When booking comes, press the green Accept button. Step two. Go to customer and finish the job. Step three. Press the yellow Complete button. Step four. Ask customer for 6 digit code and type it. Job done!"
+                },
+                hi: {
+                    welcome: "स्वागत है। आप डैशबोर्ड पर हैं।",
+                    newBooking: "नई बुकिंग आई है। नीचे टेबल में देखें। हरा Accept बटन दबाएं।",
+                    accepted: "शाबाश! बुकिंग स्वीकार हो गई। ग्राहक को OTP भेज दिया। अब ग्राहक के पास जाएं।",
+                    completeGuide: "काम हो गया? अब टेबल में पीला Complete बटन दबाएं।",
+                    declined: "बुकिंग अस्वीकार हो गई।",
+                    otpPrompt: "ग्राहक से 6 अंकों का कोड लें। एक-एक बॉक्स में भरें।",
+                    otpSuccess: "सही कोड! काम पूरा हो गया। बहुत अच्छा!",
+                    otpError: "गलत कोड। घबराएं नहीं। ग्राहक से फिर पूछें। फिर डालें।",
+                    goOnline: "आप अब ऑनलाइन हैं। बुकिंग आने लगेगी।",
+                    goOffline: "आप अब ऑफलाइन हैं।",
+                    help: "स्टेप एक। बुकिंग आए तो हरा Accept बटन दबाएं। स्टेप दो। ग्राहक के पास जाएं और काम करें। स्टेप तीन। पीला Complete बटन दबाएं। स्टेप चार। ग्राहक से 6 अंकों का कोड लें और भरें। काम पूरा!"
+                },
+                gu: {
+                    welcome: "સ્વાગત છે. તમે ડૅશબોર્ડ પર છો.",
+                    newBooking: "નવી બુકિંગ આવી છે. નીચે ટેબલમાં જુઓ. લીલો Accept બટન દબાવો.",
+                    accepted: "શાબાશ! બુકિંગ સ્વીકારાઈ. ગ્રાહકને OTP મોકલ્યો. હવે ગ્રાહક પાસે જાઓ.",
+                    completeGuide: "કામ થઈ ગયું? હવે ટેબલમાં પીળો Complete બટન દબાવો.",
+                    declined: "બુકિંગ નકારાઈ.",
+                    otpPrompt: "ગ્રાહક પાસેથી 6 અંકનો કોડ લો. એક-એક બૉક્સમાં ભરો.",
+                    otpSuccess: "સાચો કોડ! કામ પૂર્ણ થયું. ખૂબ સારું!",
+                    otpError: "ખોટો કોડ. ગભરાઓ નહીં. ગ્રાહકને ફરી પૂછો. ફરી ભરો.",
+                    goOnline: "તમે હવે ઓનલાઈન છો. બુકિંગ આવવા લાગશે.",
+                    goOffline: "તમે હવે ઓફલાઈન છો.",
+                    help: "સ્ટેપ એક. બુકિંગ આવે ત્યારે લીલો Accept બટન દબાવો. સ્ટેપ બે. ગ્રાહક પાસે જઈ કામ કરો. સ્ટેપ ત્રણ. પીળો Complete બટન દબાવો. સ્ટેપ ચાર. ગ્રાહક પાસેથી 6 અંકનો કોડ ભરો. કામ પૂર્ણ!"
+                }
+            };
+
+            const titles = {
+                en: { newBooking: 'New Booking!', accepted: 'Booking Accepted', completeGuide: 'Complete the Job', otpPrompt: 'Enter OTP', otpSuccess: 'Job Done!', otpError: 'Wrong OTP', goOnline: 'Online', goOffline: 'Offline', help: 'How to use', welcome: 'Welcome', declined: 'Declined' },
+                hi: { newBooking: 'नई बुकिंग!', accepted: 'बुकिंग स्वीकार', completeGuide: 'काम पूरा करें', otpPrompt: 'OTP डालें', otpSuccess: 'काम हो गया!', otpError: 'गलत OTP', goOnline: 'ऑनलाइन', goOffline: 'ऑफलाइन', help: 'उपयोग कैसे', welcome: 'स्वागत', declined: 'अस्वीकार' },
+                gu: { newBooking: 'નવી બુકિંગ!', accepted: 'બુકિંગ સ્વીકાર', completeGuide: 'કામ પૂર્ણ કરો', otpPrompt: 'OTP ભરો', otpSuccess: 'કામ થઈ ગયું!', otpError: 'ખોટો OTP', goOnline: 'ઓનલાઈન', goOffline: 'ઓફલાઈન', help: 'ઉપયોગ કેવી રીતે', welcome: 'સ્વાગત', declined: 'નકારાઈ' }
+            };
+
+            const subtitles = {
+                en: { newBooking: 'Listen and press green button', accepted: 'Go to customer now', completeGuide: 'Press yellow button in table', otpPrompt: 'Enter code box by box', otpSuccess: '', otpError: 'Ask customer again', help: 'Follow steps below', welcome: '', goOnline: '', goOffline: '', declined: '' },
+                hi: { newBooking: 'सुनें और हरा बटन दबाएं', accepted: 'अब ग्राहक के पास जाएं', completeGuide: 'टेबल में पीला बटन दबाएं', otpPrompt: 'एक-एक बॉक्स में कोड भरें', otpSuccess: '', otpError: 'ग्राहक से फिर पूछें', help: 'नीचे स्टेप फॉलो करें', welcome: '', goOnline: '', goOffline: '', declined: '' },
+                gu: { newBooking: 'સાંભળો અને લીલો બટન દબાવો', accepted: 'હવે ગ્રાહક પાસે જાઓ', completeGuide: 'ટેબલમાં પીળો બટન દબાવો', otpPrompt: 'એક-એક બૉક્સમાં ભરો', otpSuccess: '', otpError: 'ગ્રાહકને ફરી પૂછો', help: 'નીચે સ્ટેપ ફૉલો કરો', welcome: '', goOnline: '', goOffline: '', declined: '' }
+            };
+
+            const stepTxt = {
+                en: ['Press green Accept button', 'Go to customer & do the job', 'Press yellow Complete button', 'Enter 6-digit code from customer'],
+                hi: ['हरा Accept बटन दबाएं', 'ग्राहक के पास जाएं और काम करें', 'पीला Complete बटन दबाएं', 'ग्राहक से 6 अंकों का OTP भरें'],
+                gu: ['લીલો Accept બટન દબાવો', 'ગ્રાહક પાસે જઈ કામ કરો', 'પીળો Complete બટન દબાવો', 'ગ્રાહક પાસેથી 6 અંકનો OTP ભરો']
+            };
+
+            const btnLbl = {
+                en: { start: 'Start Guide', stop: 'Stop Guide', help: 'Help', repeat: 'Repeat' },
+                hi: { start: 'शुरू करो', stop: 'बंद करो', help: 'सहायता', repeat: 'दोहराएं' },
+                gu: { start: 'શરૂ કરો', stop: 'બંધ કરો', help: 'મદદ', repeat: 'ફરી સાંભળો' }
+            };
+
+            let lang = localStorage.getItem('he_lang') || 'en';
+            let lastMsg = '';
+            let loopActive = false;
+            let loopTimer = null;
+            let voicesReady = false;
+            let delayTimer = null;
+
+            /* ── Voice utils ── */
+            function getVoice(l) {
+                if (!('speechSynthesis' in window)) return null;
+                const vv = window.speechSynthesis.getVoices();
+                if (!vv.length) return null;
+                if (l === 'gu') return vv.find(v => v.lang === 'gu-IN') || vv.find(v => v.lang === 'gu') || vv.find(v => v.lang.startsWith('gu')) || vv.find(v => v.lang === 'hi-IN') || vv.find(v => v.lang.startsWith('hi')) || vv.find(v => v.lang === 'en-IN') || null;
+                if (l === 'hi') return vv.find(v => v.lang === 'hi-IN') || vv.find(v => v.lang.startsWith('hi')) || vv.find(v => v.lang === 'en-IN') || null;
+                return vv.find(v => v.lang === 'en-IN') || vv.find(v => v.lang === 'en-US') || vv.find(v => v.lang.startsWith('en')) || null;
+            }
+            function getLangCode(l) {
+                if (l === 'hi') return 'hi-IN';
+                if (l === 'gu') { const vv = window.speechSynthesis.getVoices(); return vv.some(v => v.lang === 'gu-IN' || v.lang === 'gu' || v.lang.startsWith('gu')) ? 'gu-IN' : 'hi-IN'; }
+                return 'en-IN';
+            }
+            function makeU(text) {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = getLangCode(lang); u.rate = 0.82; u.volume = 1.0;
+                const v = getVoice(lang); if (v) u.voice = v;
+                return u;
+            }
+
+            /* ── Banner ── */
+            function showBanner(key, showSteps, activeStep) {
+                const banner = document.getElementById('voiceMainBanner');
+                if (!banner) return;
+                const text = msgs[lang][key] || '';
+                lastMsg = text;
+                const tEl = document.getElementById('vmbTitle');
+                const sEl = document.getElementById('vmbSubtitle');
+                const mEl = document.getElementById('vmbMsg');
+                const rEl = document.getElementById('vmbRing');
+                const stEl = document.getElementById('vmbSteps');
+                if (tEl) tEl.textContent = (titles[lang] && titles[lang][key]) || '';
+                if (sEl) sEl.textContent = (subtitles[lang] && subtitles[lang][key]) || '';
+                if (mEl) mEl.textContent = text;
+                if (rEl) {
+                    rEl.textContent = key === 'newBooking' ? '🔔' : key === 'accepted' ? '✅' : key === 'otpSuccess' ? '🎉' : key === 'otpError' ? '❌' : key === 'otpPrompt' ? '🔐' : key === 'help' ? '📋' : '🔊';
+                    rEl.classList.toggle('ringing', key === 'newBooking' && loopActive);
+                }
+                if (stEl) {
+                    stEl.style.display = showSteps ? 'flex' : 'none';
+                    if (showSteps) {
+                        const sc = stepTxt[lang] || stepTxt.en;
+                        for (let i = 1; i <= 4; i++) {
+                            const d = document.getElementById('vsd' + i);
+                            const t = document.getElementById('vst' + i);
+                            if (d) { d.className = 'vmb-step-dot' + (i < activeStep ? ' done' : i === activeStep ? ' current' : ''); d.textContent = i < activeStep ? '✓' : String(i); }
+                            if (t) { t.className = 'vmb-step-text' + (i === activeStep ? ' current' : ''); t.textContent = sc[i - 1] || ''; }
+                        }
+                    }
+                }
+                banner.style.display = 'block';
+            }
+
+            function hideBanner() { const b = document.getElementById('voiceMainBanner'); if (b) b.style.display = 'none'; }
+
+            /* ── Main button UI ── */
+            function setBtnUI(active) {
+                const btn = document.getElementById('vgMainBtn');
+                const ico = document.getElementById('vgMainIcon');
+                const lbl = document.getElementById('vgMainLabel');
+                if (!btn) return;
+                const l = btnLbl[lang] || btnLbl.en;
+                if (active) { btn.className = 'vg-main-btn state-stop'; if (ico) ico.textContent = '⏹'; if (lbl) lbl.textContent = l.stop; }
+                else { btn.className = 'vg-main-btn state-start'; if (ico) ico.textContent = '▶'; if (lbl) lbl.textContent = l.start; }
+            }
+
+            /* ── Core speak ── */
+            function speak(key) {
+                const text = msgs[lang][key]; if (!text) return;
+                const step = key === 'newBooking' ? 1 : key === 'accepted' ? 2 : key === 'completeGuide' ? 3 : key === 'otpPrompt' ? 4 : 0;
+                showBanner(key, step > 0 || key === 'help', step);
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const u = makeU(text);
+                setBtnUI(true);
+                u.onend = () => { if (!loopActive) setBtnUI(false); };
+                u.onerror = () => setBtnUI(false);
+                window.speechSynthesis.speak(u);
+            }
+
+            function speakAfterDelay(key, ms) { clearTimeout(delayTimer); delayTimer = setTimeout(() => speak(key), ms); }
+
+            /* ── Loop (repeats newBooking) ── */
+            function loopSpeak() {
+                if (!loopActive) return;
+                showBanner('newBooking', true, 1);
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const u = makeU(msgs[lang]['newBooking']);
+                setBtnUI(true);
+                u.onend = () => { if (loopActive) loopTimer = setTimeout(() => loopSpeak(), 2500); else { setBtnUI(false); hideBanner(); } };
+                u.onerror = () => { loopActive = false; setBtnUI(false); };
+                window.speechSynthesis.speak(u);
+            }
+
+            function toggleLoop() { loopActive ? stopLoop() : startLoop(); }
+            function startLoop() { loopActive = true; setBtnUI(true); loopSpeak(); }
+            function stopLoop() { loopActive = false; clearTimeout(loopTimer); clearTimeout(delayTimer); if ('speechSynthesis' in window) window.speechSynthesis.cancel(); setBtnUI(false); hideBanner(); }
+
+            /* ── Help ── */
+            function showHelp() {
+                stopLoop();
+                showBanner('help', true, 0);
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const u = makeU(msgs[lang]['help']);
+                setBtnUI(true);
+                u.onend = u.onerror = () => setBtnUI(false);
+                window.speechSynthesis.speak(u);
+            }
+
+            /* ── Set language ── */
+            function setLang(l) {
+                lang = l; localStorage.setItem('he_lang', l);
+                ['en', 'hi', 'gu'].forEach(x => { const b = document.getElementById('langBtn-' + x); if (b) b.classList.toggle('active', x === l); });
+                const lb = btnLbl[l] || btnLbl.en;
+                const hEl = document.getElementById('helpLabel');
+                const rEl = document.getElementById('repeatLabel');
+                const mLbl = document.getElementById('vgMainLabel');
+                if (hEl) hEl.textContent = lb.help;
+                if (rEl) rEl.textContent = lb.repeat;
+                if (mLbl) mLbl.textContent = loopActive ? lb.stop : lb.start;
+                if (loopActive) { window.speechSynthesis.cancel(); clearTimeout(loopTimer); loopTimer = setTimeout(() => loopSpeak(), 300); }
+                else { speak('welcome'); }
+            }
+
+            /* ══════════════════════════════════════════════════════
+               INIT — AUTO-START if pending bookings exist
+            ══════════════════════════════════════════════════════ */
+            function init() {
+                if (!('speechSynthesis' in window)) {
+                    const w = document.getElementById('voiceUnsupported'); if (w) w.style.display = 'block'; return;
+                }
+                ['en', 'hi', 'gu'].forEach(x => { const b = document.getElementById('langBtn-' + x); if (b) b.classList.toggle('active', x === lang); });
+                const lb = btnLbl[lang] || btnLbl.en;
+                const hEl = document.getElementById('helpLabel');
+                const rEl = document.getElementById('repeatLabel');
+                if (hEl) hEl.textContent = lb.help;
+                if (rEl) rEl.textContent = lb.repeat;
+                setBtnUI(false);
+
+                function onVoicesReady() {
+                    voicesReady = true;
+                    if (pending > 0) {
+                        /* ★ AUTO-START: pending bookings exist — loop starts automatically ★ */
+                        setTimeout(() => { loopActive = true; setBtnUI(true); loopSpeak(); }, 1200);
+                    } else {
+                        /* No pending — just greet */
+                        setTimeout(() => speak('welcome'), 700);
+                    }
+                }
+
+                const vv = window.speechSynthesis.getVoices();
+                if (vv.length > 0) { onVoicesReady(); }
+                else {
+                    window.speechSynthesis.onvoiceschanged = function () { if (!voicesReady) onVoicesReady(); };
+                    setTimeout(() => { if (!voicesReady) onVoicesReady(); }, 2000);
+                }
+            }
+
+            return {
+                speak, speakAfterDelay, toggleLoop, startLoop, stopLoop, setLang, showHelp,
+                help: () => showHelp(),
+                repeat: () => {
+                    if (!lastMsg) return; stopLoop();
+                    if (!('speechSynthesis' in window)) return;
+                    window.speechSynthesis.cancel();
+                    const u = makeU(lastMsg); setBtnUI(true);
+                    u.onend = u.onerror = () => setBtnUI(false);
+                    window.speechSynthesis.speak(u);
+                },
+                init
+            };
+        })();
+
+        // ── Speaker guide gate: read from server-rendered value ──
+        const speakerGuideEnabled = /*[[${speakerGuideEnabled != null ? speakerGuideEnabled : false}]]*/ false;
+
+        // When disabled — replace all VG methods with no-ops so every
+        // VG.speak() / VG.stopLoop() call elsewhere stays safe & silent.
+        if (!speakerGuideEnabled) {
+            Object.keys(VG).forEach(k => { VG[k] = () => {}; });
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const voiceWidget = document.getElementById('voiceWidget');
+
+            if (speakerGuideEnabled && voiceWidget) {
+                // Show the widget and start voice guide
+                voiceWidget.style.display = 'flex';
+                VG.init();
+            } else {
+                // Widget is hidden server-side via th:if — nothing to do
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            }
+        });
+
+        /* ── REPORT MODAL ── */
+        function openReportModal(targetEmail, targetRole, bookingId, targetName) {
+            document.getElementById('reportTargetEmail').value = targetEmail;
+            document.getElementById('reportTargetRole').value = targetRole;
+            document.getElementById('reportBookingId').value = bookingId || '';
+            document.getElementById('reportTargetDisplay').textContent = targetName;
+            document.getElementById('reportOverlay').style.display = 'flex';
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportOverlay').style.display = 'none';
+        }
+    </script>
+
+    <!-- ═══════════════════════ REPORT MODAL ═══════════════════════ -->
+    <div id="reportOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px;" onclick="if(event.target===this) closeReportModal()">
+        <div style="background:white; border-radius:24px; width:100%; max-width:500px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,0.3); animation: fadeUp 0.4s easeOut;">
+            <div style="background:linear-gradient(135deg, #c0392b, #e74c3c); padding:24px; color:white; position:relative;">
+                <button onclick="closeReportModal()" style="position:absolute; top:15px; right:20px; background:none; border:none; color:white; font-size:20px; cursor:pointer;">✕</button>
+                <h2 style="font-family:'Inter', sans-serif; font-weight:800; font-size:20px; margin-bottom:4px;">Report User</h2>
+                <p style="font-size:13px; opacity:0.8;">Your report is confidential and helps keep HomeEase safe.</p>
+            </div>
+            <div style="padding:24px;">
+                <form th:action="@{/worker/submit-report}" method="post">
+                    <input type="hidden" name="targetEmail" id="reportTargetEmail">
+                    <input type="hidden" name="targetRole" id="reportTargetRole">
+                    <input type="hidden" name="bookingId" id="reportBookingId">
+
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--light); letter-spacing:1px; margin-bottom:8px;">Target</label>
+                        <div id="reportTargetDisplay" style="font-weight:700; color:var(--dark); font-size:15px; padding:12px; background:var(--off); border-radius:12px; border:1px solid var(--border);">User Name</div>
+                    </div>
+
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--light); letter-spacing:1px; margin-bottom:8px;">Reason</label>
+                        <select name="reason" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); font-family:inherit; font-size:14px; outline:none; background:white;" required>
+                            <option value="">Select a reason...</option>
+                            <option value="Inappropriate profile content">Inappropriate profile content</option>
+                            <option value="Misleading information">Misleading information</option>
+                            <option value="Safety concerns">Safety concerns</option>
+                            <option value="Suspicious behavior">Suspicious behavior</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:24px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--light); letter-spacing:1px; margin-bottom:8px;">Description</label>
+                        <textarea name="description" rows="4" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); font-family:inherit; font-size:14px; outline:none; resize:none;" placeholder="Provide more details..." required></textarea>
+                    </div>
+
+                    <button type="submit" style="width:100%; padding:16px; background:var(--red); color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; transition:transform 0.2s;">
+                        Submit Secret Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="common/chatbot :: chatbot"></div>
+    <div th:replace="common/translator :: translator"></div>
+
+</body>
+
+</html>

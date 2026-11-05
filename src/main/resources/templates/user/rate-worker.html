@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Worker - HomeEase</title>
+    <link rel="stylesheet" href="/css/user-navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --background: #F3F4F6;
+            --surface: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --star-active: #FBBF24;
+            --star-inactive: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .rating-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: transform 0.3s ease;
+        }
+
+        .rating-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .worker-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            padding: 1rem;
+            background: #F9FAFB;
+            border-radius: 12px;
+        }
+
+        .worker-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .worker-details h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .worker-details p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .rating-group {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .rating-group input {
+            display: none;
+        }
+
+        .rating-group label {
+            cursor: pointer;
+            font-size: 2.5rem;
+            color: var(--star-inactive);
+            transition: all 0.2s ease;
+        }
+
+        .rating-group label:hover,
+        .rating-group label:hover ~ label,
+        .rating-group input:checked ~ label {
+            color: var(--star-active);
+            transform: scale(1.1);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            resize: vertical;
+            min-height: 120px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="common/user-navbar :: userNavbar"></div>
+
+<main class="main-container">
+    <div class="rating-card">
+        <div class="header">
+            <h1>Rate Your Experience</h1>
+            <p>How was your service with HomeEase?</p>
+        </div>
+
+        <div th:if="${error}" class="error-message">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        </div>
+        
+        <div th:if="${param.error != null and param.error[0] == 'already_rated'}" class="error-message">
+            <i class="fas fa-star"></i> You have already rated this service!
+        </div>
+
+        <div class="worker-info">
+            <div class="worker-avatar" th:text="${#strings.substring(worker.name,0,1)}">W</div>
+            <div class="worker-details">
+                <h3 th:text="${worker.name}">Worker Name</h3>
+                <p th:text="${worker.category}">Service Category</p>
+            </div>
+        </div>
+
+        <form th:action="@{/user/submit-rating}" method="POST">
+            <input type="hidden" name="bookingId" th:value="${booking.id}" />
+            
+            <div class="rating-group">
+                <input type="radio" id="star5" name="stars" value="5" required />
+                <label for="star5" title="5 stars"><i class="fas fa-star"></i></label>
+                
+                <input type="radio" id="star4" name="stars" value="4" />
+                <label for="star4" title="4 stars"><i class="fas fa-star"></i></label>
+                
+                <input type="radio" id="star3" name="stars" value="3" />
+                <label for="star3" title="3 stars"><i class="fas fa-star"></i></label>
+                
+                <input type="radio" id="star2" name="stars" value="2" />
+                <label for="star2" title="2 stars"><i class="fas fa-star"></i></label>
+                
+                <input type="radio" id="star1" name="stars" value="1" />
+                <label for="star1" title="1 star"><i class="fas fa-star"></i></label>
+            </div>
+
+            <div class="form-group">
+                <label for="review">Write a Review (Optional)</label>
+                <textarea id="review" name="review" placeholder="Share details of your experience..."></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <span>Submit Rating</span>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</main>
+<div th:replace="common/footer :: footer"></div>
+
+<div th:replace="common/translator :: translator"></div>
+</body>
+</html>

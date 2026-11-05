@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings | HomeEase Worker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold: #c9a84c;
+            --gold-light: #e8cc7a;
+            --gold-pale: rgba(253,248,238,0.6);
+            --gold-border: rgba(232,213,160,0.5);
+            --white: #ffffff;
+            --off-white: #f9f8f5;
+            --text-dark: #181818;
+            --text-mid: #4a4a45;
+            --text-light: #909088;
+            --border: rgba(234,231,220,0.6);
+            --radius: 20px;
+            --glass-bg: rgba(255,255,255,0.45);
+            --glass-border: rgba(255,255,255,0.70);
+            --glass-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --success-border: #a7f3d0;
+            --error: #dc2626;
+            --error-light: #fef2f2;
+            --error-border: #fecaca;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            font-size: 15px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #faf7ef;
+        }
+
+        /* ════════════════════════════════════════════
+           PAGE STRUCTURE
+        ════════════════════════════════════════════ */
+        .page-header {
+            background: #ffffff;
+            border-bottom: 1px solid rgba(234,231,220,0.75);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+            padding: 32px 0;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* ════════════════════════════════════════════
+           MAIN CONTENT
+        ════════════════════════════════════════════ */
+        .container {
+            max-width: 1200px;
+            margin: 48px auto;
+            padding: 0 48px;
+        }
+
+        /* ════════════════════════════════════════════
+           SETTINGS SECTIONS
+        ════════════════════════════════════════════ */
+        .settings-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .settings-section h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .settings-section p {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* ════════════════════════════════════════════
+           SETTING ITEM
+        ════════════════════════════════════════════ */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(234,231,220,0.3);
+            gap: 24px;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .setting-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-info p {
+            font-size: 14px;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ════════════════════════════════════════════
+           TOGGLE SWITCH
+        ════════════════════════════════════════════ */
+        .toggle-switch {
+            position: relative;
+            display: inline-flex;
+            width: 56px;
+            height: 32px;
+            background-color: #e5e7eb;
+            border-radius: 16px;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background-color: var(--gold);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        /* ════════════════════════════════════════════
+           STATUS BADGES
+        ════════════════════════════════════════════ */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.enabled {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.disabled {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-badge.enabled .status-dot {
+            background-color: var(--success);
+        }
+
+        .status-badge.disabled .status-dot {
+            background-color: #d1d5db;
+        }
+
+        /* ════════════════════════════════════════════
+           LOGOUT BUTTON
+        ════════════════════════════════════════════ */
+        .logout-button {
+            background-color: #fef2f2;
+            color: var(--error);
+            border: 1px solid #fecaca;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .logout-button:hover {
+            background-color: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        .logout-button:active {
+            transform: scale(0.98);
+        }
+
+        /* ════════════════════════════════════════════
+           ALERTS
+        ════════════════════════════════════════════ */
+        .alert {
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.success {
+            background: var(--success-light);
+            border: 1px solid var(--success-border);
+            color: var(--success);
+        }
+
+        .alert.error {
+            background: var(--error-light);
+            border: 1px solid var(--error-border);
+            color: var(--error);
+        }
+
+        .alert-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .alert-message {
+            flex: 1;
+        }
+
+        .alert.success .alert-icon {
+            color: var(--success);
+        }
+
+        .alert.error .alert-icon {
+            color: var(--error);
+        }
+
+        /* ════════════════════════════════════════════
+           LOADING STATE
+        ════════════════════════════════════════════ */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(201, 168, 76, 0.3);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ════════════════════════════════════════════
+           ICON STYLES
+        ════════════════════════════════════════════ */
+        .icon-speaker {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+        }
+
+        /* ════════════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 24px;
+            }
+
+            .header-inner {
+                padding: 0 24px;
+            }
+
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .settings-section {
+                padding: 20px;
+            }
+
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+
+            .setting-control {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <div th:replace="common/worker-navbar :: workerNavbar"></div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="header-inner">
+            <h1>⚙️ Settings</h1>
+            <p>Manage your preferences and application settings</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <!-- ALERTS -->
+        <div id="alertContainer"></div>
+
+        <!-- SPEAKER GUIDE SETTINGS -->
+        <div class="settings-section">
+            <h2>🔊 Voice Guidance</h2>
+            <p>Control whether you want voice guidance and speaker notifications</p>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Speaker Guide</h3>
+                    <p>Enable or disable voice guidance in your dashboard and notifications. When enabled, important alerts and messages will have audio support.</p>
+                </div>
+                <div class="setting-control">
+                    <span id="statusBadge" class="status-badge" th:classappend="${worker.speakerGuideEnabled} ? 'enabled' : 'disabled'">
+                        <span class="status-dot"></span>
+                        <span id="statusText" th:text="${worker.speakerGuideEnabled} ? 'Enabled' : 'Disabled'"></span>
+                    </span>
+                    <button class="toggle-switch" th:classappend="${worker.speakerGuideEnabled} ? 'active' : ''" id="speakerGuideToggle" onclick="toggleSpeakerGuide()"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCOUNT & SECURITY -->
+        <div class="settings-section">
+            <h2>🔐 Account & Security</h2>
+            <p>Manage your account security and logout options</p>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Logout</h3>
+                    <p>Sign out from your HomeEase Worker account on this device.</p>
+                </div>
+                <div class="setting-control">
+                    <form action="/logout" method="post" style="margin: 0;">
+                        <button type="submit" class="logout-button">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer th:replace="common/footer :: footer"></footer>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        /**
+         * Toggle Speaker Guide Setting
+         */
+        function toggleSpeakerGuide() {
+            const button = document.getElementById('speakerGuideToggle');
+            const statusBadge = document.getElementById('statusBadge');
+            const statusText = document.getElementById('statusText');
+            const alertContainer = document.getElementById('alertContainer');
+
+            // Add loading state
+            button.classList.add('loading');
+            button.disabled = true;
+
+            fetch('/worker/toggle-speaker-guide', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                button.classList.remove('loading');
+                button.disabled = false;
+
+                if (data.status === 'success') {
+                    // Update button state
+                    if (data.enabled) {
+                        button.classList.add('active');
+                        statusBadge.classList.remove('disabled');
+                        statusBadge.classList.add('enabled');
+                        statusText.textContent = 'Enabled';
+                    } else {
+                        button.classList.remove('active');
+                        statusBadge.classList.remove('enabled');
+                        statusBadge.classList.add('disabled');
+                        statusText.textContent = 'Disabled';
+                    }
+
+                    // Show success alert
+                    showAlert('success', data.message);
+                } else {
+                    showAlert('error', data.message || 'Error updating speaker guide setting');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.classList.remove('loading');
+                button.disabled = false;
+                showAlert('error', 'An error occurred. Please try again.');
+            });
+        }
+
+        /**
+         * Show Alert Message
+         */
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <span class="alert-icon">${type === 'success' ? '✓' : '✕'}</span>
+                <span class="alert-message">${message}</span>
+            `;
+
+            alertContainer.appendChild(alert);
+
+            // Auto remove alert after 4 seconds
+            setTimeout(() => {
+                alert.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => alert.remove(), 300);
+            }, 4000);
+        }
+
+        /**
+         * Load speaker guide status on page load
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSpeakerGuideStatus();
+        });
+
+        function loadSpeakerGuideStatus() {
+            fetch('/worker/get-speaker-guide-status', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const button = document.getElementById('speakerGuideToggle');
+                    const statusBadge = document.getElementById('statusBadge');
+                    const statusText = document.getElementById('statusText');
+
+                    if (data.enabled) {
+                        button.classList.add('active');
+                        statusBadge.classList.remove('disabled');
+                        statusBadge.classList.add('enabled');
+                        statusText.textContent = 'Enabled';
+                    } else {
+                        button.classList.remove('active');
+                        statusBadge.classList.remove('enabled');
+                        statusBadge.classList.add('disabled');
+                        statusText.textContent = 'Disabled';
+                    }
+                }
+            })
+            .catch(error => console.error('Error loading status:', error));
+        }
+    </script>
+</body>
+</html>
